@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -20,6 +21,8 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import okhttp3.Call;
@@ -105,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         });
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void UpdateFragment(Module module) {
         if (module.getStyle() == 1) {
             runOnUiThread(() -> {
@@ -123,7 +127,10 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
             });
         } else if (module.getStyle() == 3 || module.getStyle() == 4) {
             runOnUiThread(() -> {
-                homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
+                for (MusicInfo musicInfo : module.getMusicInfoList()) {
+
+                    homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), Collections.singletonList(musicInfo)));
+                }
                 adapter.notifyDataSetChanged();  // Notify the adapter about the data change
             });
         }
