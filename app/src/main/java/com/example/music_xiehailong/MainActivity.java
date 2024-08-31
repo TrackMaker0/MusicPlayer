@@ -14,7 +14,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.chad.library.adapter.base.listener.OnLoadMoreListener;
-import com.chad.library.adapter.base.module.BaseLoadMoreModule;
 import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
@@ -42,24 +41,17 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     public static final String TAG = "MyMainActivity";
     private SwipeRefreshLayout swipeRefreshView;
     private List<HomeItem> homeItems;
-    private List<MultipleItem> itemList;
     private HomeBaseQuickAdapter adapter;
-    private final int ReFreshing = 0;
-    private final int LoadingMore = 1;
-    private final int DoNothing = 3;
-    private int current;
-    private int size;
-    private int Status;
+    private int current = 1;
+    private int size = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Status = ReFreshing;
-        makeOkHttpRequest();
-
         homeItems = new ArrayList<>();
+        makeOkHttpRequest();
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         adapter = new HomeBaseQuickAdapter(this, homeItems);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -70,18 +62,16 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         swipeRefreshView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                Status = ReFreshing;
+                homeItems.clear();
                 makeOkHttpRequest();
             }
         });
 
-        BaseLoadMoreModule loadMoreModule = adapter.getLoadMoreModule();
-        loadMoreModule.setOnLoadMoreListener(new OnLoadMoreListener() {
+        adapter.getLoadMoreModule().setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore() {
-                Status = LoadingMore;
                 makeOkHttpRequest();
-                loadMoreModule.loadMoreComplete();
+                adapter.getLoadMoreModule().loadMoreComplete();
             }
         });
 
@@ -89,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
 
 //    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
 //    private void onMessageEvent(MessageEvent event) {
-//        adapter.notifyDataSetChanged();
+//        adapter.getLoadMoreModule().loadMoreComplete();
 //    }
 
     public void makeOkHttpRequest() {
@@ -113,21 +103,16 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
                     Gson gson = new Gson();
                     ApiResponse apiResponse = gson.fromJson(responseData, ApiResponse.class);
 
-                    if (Status == ReFreshing) homeItems.clear();
-
                     // 获取每个 MusicInfo 对象
                     if (apiResponse != null && apiResponse.getData() != null) {
                         List<Module> modules = apiResponse.getData().getRecords();
                         for (Module module : modules) {
-                            UpdateFragment(module);
+                            UpdateHomeItemList(module);
                         }
                     }
 
-                    current += size;
-                    if (Status == ReFreshing) {
-                        swipeRefreshView.setRefreshing(false);
-                        Status = DoNothing;
-                    }
+                    swipeRefreshView.setRefreshing(false);
+
 //                    EventBus.getDefault().postSticky(new MessageEvent());
 
                 } else {
@@ -143,22 +128,26 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private void UpdateFragment(Module module) {
+    private void UpdateHomeItemList(Module module) {
         if (module.getStyle() == 1) {
             runOnUiThread(() -> {
                 homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
-                adapter.notifyItemChanged(homeItems.size() - 1, 1);
+                adapter.notifyItemChanged(0);
 //                adapter.notifyDataSetChanged();
             });
 
         } else if (module.getStyle() == 2) {
             runOnUiThread(() -> {
-                if (Status == ReFreshing) {
+                if (homeItems.size() > 1) {
+                    List<MusicInfo> existingList = homeItems.get(1).getContentItems();
+                        List<MusicInfo> updatedList = new ArrayList<>(existingList);
+                        updatedList.addAll(module.getMusicInfoList());
+                        homeItems.get(1).setContentItems(updatedList);
+                        adapter.notifyItemChanged(1);
+                } else {
                     homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
-                } else if (Status == LoadingMore) {
-                    homeItems.get(1).getContentItems().addAll(module.getMusicInfoList());
                 }
-                adapter.notifyItemChanged(homeItems.size() - 1, 1);
+                adapter.notifyItemChanged(1);
 //                adapter.notifyDataSetChanged();
             });
         } else if (module.getStyle() == 3) {
@@ -187,11 +176,12 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     @NonNull
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {
-        if (Status == ReFreshing) {
+        if (homeItems.isEmpty()) {
             current = 1;
             size = 4;
-        } else if (Status == LoadingMore) {
-            size = 3;
+        } else {
+            current += size;
+            size = 1;
         }
 
         Request request = chain.request();
