@@ -21,7 +21,7 @@ public class ExclusiveViewHolder extends RecyclerView.ViewHolder {
 
     public void bind(Context context, List<MusicInfo> musicInfoList) {
         adapter = new MusicAdapter(context, musicInfoList);
-        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setAdapter(adapter);
     }
 }

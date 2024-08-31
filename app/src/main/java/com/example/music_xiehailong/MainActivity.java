@@ -74,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
                 adapter.getLoadMoreModule().loadMoreComplete();
             }
         });
-
     }
 
 //    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
@@ -84,15 +83,10 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
 
     public void makeOkHttpRequest() {
         // 创建OkHttpClient请求
-        Request request = new Request.Builder()
-                .get()
-                .url(BASE_URL_OKHTTP)
-                .build();
+        Request request = new Request.Builder().get().url(BASE_URL_OKHTTP).build();
 
         // 创建OkHttpClient，并添加拦截器
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .addInterceptor(this)
-                .build();
+        OkHttpClient okHttpClient = new OkHttpClient.Builder().addInterceptor(this).build();
 
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
@@ -103,17 +97,17 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
                     Gson gson = new Gson();
                     ApiResponse apiResponse = gson.fromJson(responseData, ApiResponse.class);
 
-                    // 获取每个 MusicInfo 对象
-                    if (apiResponse != null && apiResponse.getData() != null) {
-                        List<Module> modules = apiResponse.getData().getRecords();
-                        for (Module module : modules) {
-                            UpdateHomeItemList(module);
+                    runOnUiThread(() -> {
+                        // 获取每个 MusicInfo 对象
+                        if (apiResponse != null && apiResponse.getData() != null) {
+                            List<Module> modules = apiResponse.getData().getRecords();
+                            for (Module module : modules) {
+                                UpdateHomeItemList(module);
+                            }
                         }
-                    }
-
-                    swipeRefreshView.setRefreshing(false);
-
-//                    EventBus.getDefault().postSticky(new MessageEvent());
+                        swipeRefreshView.setRefreshing(false);
+//                        EventBus.getDefault().postSticky(new MessageEvent());
+                    });
 
                 } else {
                     Log.e(TAG, "OkHttp Request failed with code: " + response.code());
@@ -130,46 +124,36 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     @SuppressLint("NotifyDataSetChanged")
     private void UpdateHomeItemList(Module module) {
         if (module.getStyle() == 1) {
-            runOnUiThread(() -> {
-                homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
-                adapter.notifyItemChanged(0);
-//                adapter.notifyDataSetChanged();
-            });
-
+            homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
+            adapter.notifyItemChanged(0);
+//            adapter.notifyDataSetChanged();
         } else if (module.getStyle() == 2) {
-            runOnUiThread(() -> {
-                if (homeItems.size() > 1) {
-                    List<MusicInfo> existingList = homeItems.get(1).getContentItems();
-                        List<MusicInfo> updatedList = new ArrayList<>(existingList);
-                        updatedList.addAll(module.getMusicInfoList());
-                        homeItems.get(1).setContentItems(updatedList);
-                        adapter.notifyItemChanged(1);
-                } else {
-                    homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
-                }
+            if (homeItems.size() > 1) {
+                List<MusicInfo> existingList = homeItems.get(1).getContentItems();
+                List<MusicInfo> updatedList = new ArrayList<>(existingList);
+                updatedList.addAll(module.getMusicInfoList());
+                homeItems.get(1).setContentItems(updatedList);
                 adapter.notifyItemChanged(1);
-//                adapter.notifyDataSetChanged();
-            });
+            } else {
+                homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
+            }
+            adapter.notifyItemChanged(1);
+//            adapter.notifyDataSetChanged();
         } else if (module.getStyle() == 3) {
-            runOnUiThread(() -> {
-                int start = homeItems.size();
-                for (MusicInfo musicInfo : module.getMusicInfoList()) {
-                    homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), Collections.singletonList(musicInfo)));
-                }
-                adapter.notifyItemRangeChanged(start, homeItems.size() - start);
-//                adapter.notifyDataSetChanged();
-            });
+            int start = homeItems.size();
+            for (MusicInfo musicInfo : module.getMusicInfoList()) {
+                homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), Collections.singletonList(musicInfo)));
+            }
+            adapter.notifyItemRangeChanged(start, homeItems.size() - start);
+//            adapter.notifyDataSetChanged();
         } else if (module.getStyle() == 4) {
-            runOnUiThread(() -> {
-                int start = homeItems.size();
-                List<MusicInfo> musicInfoList = module.getMusicInfoList();
-                for (int i = 0; i < musicInfoList.size(); i += 2) {
-                    homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(),
-                            Arrays.asList(musicInfoList.get(i), musicInfoList.get(i + 1))));
-                }
-                adapter.notifyItemRangeChanged(start, homeItems.size() - start);
-//                adapter.notifyDataSetChanged();
-            });
+            int start = homeItems.size();
+            List<MusicInfo> musicInfoList = module.getMusicInfoList();
+            for (int i = 0; i < musicInfoList.size(); i += 2) {
+                homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), Arrays.asList(musicInfoList.get(i), musicInfoList.get(i + 1))));
+            }
+            adapter.notifyItemRangeChanged(start, homeItems.size() - start);
+//            adapter.notifyDataSetChanged();
         }
     }
 

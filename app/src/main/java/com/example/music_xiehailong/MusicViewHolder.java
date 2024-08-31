@@ -49,11 +49,11 @@ public class MusicViewHolder extends RecyclerView.ViewHolder {
                 Toast.makeText(context, "将" + item.getMusicName() + "添加到音乐列表", Toast.LENGTH_SHORT).show();
             }
         });
-        coverView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(context, item.getMusicName(), Toast.LENGTH_SHORT).show();
-            }
-        });
+//        coverView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Toast.makeText(context, item.getMusicName(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
     }
 }
