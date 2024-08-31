@@ -51,7 +51,7 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         HomeItem homeItem = homeItems.get(position);
-        MusicInfo musicInfo = homeItem.getContentItems().get(0); // Assuming you always get the first item
+        List<MusicInfo> musicInfoList = homeItem.getContentItems(); // Assuming you always get the first item
 
         switch (homeItem.getModuleType()) {
             case HomeItem.TYPE_BANNER:
@@ -62,11 +62,11 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 break;
             case HomeItem.TYPE_SINGLE_COLUMN:
                 SingleColumnViewHolder singleColumnViewHolder = (SingleColumnViewHolder) holder;
-                singleColumnViewHolder.bind(context, holder.itemView, musicInfo);
+                singleColumnViewHolder.bind(context, holder.itemView, musicInfoList.get(0));
                 break;
             case HomeItem.TYPE_DOUBLE_COLUMN:
                 DoubleColumnViewHolder doubleColumnViewHolder = (DoubleColumnViewHolder) holder;
-                doubleColumnViewHolder.bind(context, holder.itemView, musicInfo);
+                doubleColumnViewHolder.bind(context, holder.itemView, musicInfoList.get(0), musicInfoList.get(1));
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported view holder type");

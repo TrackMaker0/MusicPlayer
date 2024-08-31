@@ -117,19 +117,27 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
                         .replace(R.id.banner_container, BannerFragment.newInstance(musicInfoList))
                         .commit();
             });
-        }
-        if (module.getStyle() == 2) {
+        } else if (module.getStyle() == 2) {
             runOnUiThread(() -> {
                 List<MusicInfo> musicInfoList = module.getMusicInfoList();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.exclusive_container, ExclusiveSongFragment.newInstance(musicInfoList))
                         .commit();
             });
-        } else if (module.getStyle() == 3 || module.getStyle() == 4) {
+        } else if (module.getStyle() == 3) {
             runOnUiThread(() -> {
                 for (MusicInfo musicInfo : module.getMusicInfoList()) {
 
                     homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), Collections.singletonList(musicInfo)));
+                }
+                adapter.notifyDataSetChanged();  // Notify the adapter about the data change
+            });
+        } else if (module.getStyle() == 4) {
+            runOnUiThread(() -> {
+                List<MusicInfo> musicInfoList = module.getMusicInfoList();
+                for (int i = 0; i < musicInfoList.size(); i += 2) {
+                    homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(),
+                            Arrays.asList(musicInfoList.get(i), musicInfoList.get(i+1))));
                 }
                 adapter.notifyDataSetChanged();  // Notify the adapter about the data change
             });

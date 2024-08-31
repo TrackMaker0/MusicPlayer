@@ -8,11 +8,27 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:text="热门金曲"
         android:textSize="20sp" />
 
-        <include layout="@layout/item_music" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <com.example.music_xiehailong.MyMusicView
+                android:id="@+id/myMusicView1"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent" />
+
+            <com.example.music_xiehailong.MyMusicView
+                android:id="@+id/myMusicView2"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent" />
+        </LinearLayout>
 
 </LinearLayout>
