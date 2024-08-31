@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -27,24 +27,16 @@
             android:hint="请输入问题关键词"
             android:paddingStart="16dp" />
 
-        <!--   Banner     -->
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/banner_container"
-            android:layout_width="match_parent"
-            android:layout_height="150dp" />
+<!--        &lt;!&ndash;   Banner     &ndash;&gt;-->
+<!--        <androidx.fragment.app.FragmentContainerView-->
+<!--            android:id="@+id/banner_container"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="150dp" />-->
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
-            android:text="专属好歌"
-            android:textSize="20sp" />
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/exclusive_container"
-            android:layout_width="match_parent"
-            android:layout_height="150dp" />
+<!--        <androidx.fragment.app.FragmentContainerView-->
+<!--            android:id="@+id/exclusive_container"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="150dp" />-->
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
@@ -64,4 +56,4 @@
 
     </LinearLayout>
 
-</ScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

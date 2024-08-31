@@ -1,7 +1,6 @@
 package com.example.music_xiehailong;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,17 +31,17 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         View view;
         switch (viewType) {
             case HomeItem.TYPE_BANNER:
-                Log.d(TAG, "onCreateViewHolder: ");
-                return null;
+                view = inflater.inflate(R.layout.item_banner, parent, false);
+                return new BannerViewHolder(view);
             case HomeItem.TYPE_HORIZONTAL_CARD:
-                Log.d(TAG, "onCreateViewHolder: ");
-                return null;
+                view = inflater.inflate(R.layout.item_exclusive_song, parent, false);
+                return new ExclusiveViewHolder(view);
             case HomeItem.TYPE_SINGLE_COLUMN:
-                view = inflater.inflate(R.layout.fragment_daily_recommend, parent, false);
-                return new SingleColumnViewHolder(view); // Use SingleColumnViewHolder
+                view = inflater.inflate(R.layout.item_daily_recommend, parent, false);
+                return new RecommendViewHolder(view); // Use SingleColumnViewHolder
             case HomeItem.TYPE_DOUBLE_COLUMN:
-                view = inflater.inflate(R.layout.fragment_hot_music, parent, false);
-                return new DoubleColumnViewHolder(view); // Use DoubleColumnViewHolder
+                view = inflater.inflate(R.layout.item_hot_music, parent, false);
+                return new HotSongViewHolder(view); // Use DoubleColumnViewHolder
             default:
                 throw new IllegalArgumentException("Unsupported view type");
         }
@@ -55,18 +54,20 @@ public class HomeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         switch (homeItem.getModuleType()) {
             case HomeItem.TYPE_BANNER:
-                Log.d(TAG, "onBindViewHolder: ");
+                BannerViewHolder bannerViewHolder = (BannerViewHolder) holder;
+                bannerViewHolder.bind(context, musicInfoList);
                 break;
             case HomeItem.TYPE_HORIZONTAL_CARD:
-                Log.d(TAG, "onBindViewHolder: ");
+                ExclusiveViewHolder exclusiveViewHolder = (ExclusiveViewHolder) holder;
+                exclusiveViewHolder.bind(context, musicInfoList);
                 break;
             case HomeItem.TYPE_SINGLE_COLUMN:
-                SingleColumnViewHolder singleColumnViewHolder = (SingleColumnViewHolder) holder;
-                singleColumnViewHolder.bind(context, holder.itemView, musicInfoList.get(0));
+                RecommendViewHolder recommendViewHolder = (RecommendViewHolder) holder;
+                recommendViewHolder.bind(context, holder.itemView, musicInfoList.get(0));
                 break;
             case HomeItem.TYPE_DOUBLE_COLUMN:
-                DoubleColumnViewHolder doubleColumnViewHolder = (DoubleColumnViewHolder) holder;
-                doubleColumnViewHolder.bind(context, holder.itemView, musicInfoList.get(0), musicInfoList.get(1));
+                HotSongViewHolder hotSongViewHolder = (HotSongViewHolder) holder;
+                hotSongViewHolder.bind(context, holder.itemView, musicInfoList.get(0), musicInfoList.get(1));
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported view holder type");

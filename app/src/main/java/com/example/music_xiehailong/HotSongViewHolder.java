@@ -5,11 +5,11 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class DoubleColumnViewHolder extends RecyclerView.ViewHolder {
+public class HotSongViewHolder extends RecyclerView.ViewHolder {
     private MyMusicView myMusicView1;
     private MyMusicView myMusicView2;
 
-    public DoubleColumnViewHolder(@NonNull View itemView) {
+    public HotSongViewHolder(@NonNull View itemView) {
         super(itemView);
         myMusicView1 = itemView.findViewById(R.id.myMusicView1);
         myMusicView2 = itemView.findViewById(R.id.myMusicView2);

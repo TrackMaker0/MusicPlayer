@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.chad.library.adapter.base.listener.OnLoadMoreListener;
 import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
@@ -35,28 +36,54 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements Interceptor {
 
-    public static final String TAG = "MyMainActivity";
-    private HomeAdapter adapter;
-    private RecyclerView recyclerView;
-    private List<HomeItem> homeItems;
-    private OkHttpClient okHttpClient;
-    private Request request;
-    public static final String BASE_URL_RETROFIT = "https://hotfix-service-prod.g.mi.com";
+
     public static final String BASE_URL_OKHTTP = "https://hotfix-service-prod.g.mi.com/music/homePage";
+    public static final String TAG = "MyMainActivity";
+    private SwipeRefreshLayout swipeRefreshView;
+    private List<HomeItem> homeItems;
+    private List<MultipleItem> itemList;
+    private HomeAdapter adapter;
+    private HomeBaseQuickAdapter baseQuickAdapter;
+    private final int ReFreshing = 0;
+    private final int LoadingMore = 1;
+    private final int DoNothing = 3;
+    private int current;
+    private int size;
+    private int Status;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Status = ReFreshing;
         makeOkHttpRequest();
 
         homeItems = new ArrayList<>();
-
-        recyclerView = findViewById(R.id.recyclerView);
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+//        baseQuickAdapter = new HomeBaseQuickAdapter(this, itemList);
         adapter = new HomeAdapter(this, homeItems);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
+
+        swipeRefreshView = findViewById(R.id.swipe_refresh_layout);
+
+        swipeRefreshView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Status = ReFreshing;
+                makeOkHttpRequest();
+            }
+        });
+
+//        adapter.getLoadMoreModule().setOnLoadMoreListener(new OnLoadMoreListener() {
+//            @Override
+//            public void onLoadMore() {
+//                Status = LoadingMore;
+//                makeOkHttpRequest();
+//            }
+//        });
+
     }
 
 //    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
@@ -65,15 +92,14 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
 //    }
 
     public void makeOkHttpRequest() {
-
         // 创建OkHttpClient请求
-        request = new Request.Builder()
+        Request request = new Request.Builder()
                 .get()
                 .url(BASE_URL_OKHTTP)
                 .build();
 
         // 创建OkHttpClient，并添加拦截器
-        okHttpClient = new OkHttpClient.Builder()
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .addInterceptor(this)
                 .build();
 
@@ -86,6 +112,8 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
                     Gson gson = new Gson();
                     ApiResponse apiResponse = gson.fromJson(responseData, ApiResponse.class);
 
+                    if (Status == ReFreshing) homeItems.clear();
+
                     // 获取每个 MusicInfo 对象
                     if (apiResponse != null && apiResponse.getData() != null) {
                         List<Module> modules = apiResponse.getData().getRecords();
@@ -94,6 +122,11 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
                         }
                     }
 
+                    current += size;
+                    if (Status == ReFreshing) {
+                        swipeRefreshView.setRefreshing(false);
+                        Status = DoNothing;
+                    }
 //                    EventBus.getDefault().postSticky(new MessageEvent());
 
                 } else {
@@ -112,34 +145,40 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     private void UpdateFragment(Module module) {
         if (module.getStyle() == 1) {
             runOnUiThread(() -> {
-                List<MusicInfo> musicInfoList = module.getMusicInfoList();
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.banner_container, BannerFragment.newInstance(musicInfoList))
-                        .commit();
+                homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
+                adapter.notifyItemChanged(homeItems.size() - 1, 1);
+//                adapter.notifyDataSetChanged();
             });
+
         } else if (module.getStyle() == 2) {
             runOnUiThread(() -> {
-                List<MusicInfo> musicInfoList = module.getMusicInfoList();
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.exclusive_container, ExclusiveSongFragment.newInstance(musicInfoList))
-                        .commit();
+                if (Status == ReFreshing) {
+                    homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
+                } else if (Status == LoadingMore) {
+                    homeItems.get(1).getContentItems().addAll(module.getMusicInfoList());
+                }
+                adapter.notifyItemChanged(homeItems.size() - 1, 1);
+//                adapter.notifyDataSetChanged();
             });
         } else if (module.getStyle() == 3) {
             runOnUiThread(() -> {
+                int start = homeItems.size();
                 for (MusicInfo musicInfo : module.getMusicInfoList()) {
-
                     homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), Collections.singletonList(musicInfo)));
                 }
-                adapter.notifyDataSetChanged();  // Notify the adapter about the data change
+                adapter.notifyItemRangeChanged(start, homeItems.size() - start);
+//                adapter.notifyDataSetChanged();
             });
         } else if (module.getStyle() == 4) {
             runOnUiThread(() -> {
+                int start = homeItems.size();
                 List<MusicInfo> musicInfoList = module.getMusicInfoList();
                 for (int i = 0; i < musicInfoList.size(); i += 2) {
                     homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(),
-                            Arrays.asList(musicInfoList.get(i), musicInfoList.get(i+1))));
+                            Arrays.asList(musicInfoList.get(i), musicInfoList.get(i + 1))));
                 }
-                adapter.notifyDataSetChanged();  // Notify the adapter about the data change
+                adapter.notifyItemRangeChanged(start, homeItems.size() - start);
+//                adapter.notifyDataSetChanged();
             });
         }
     }
@@ -147,6 +186,13 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     @NonNull
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {
+        if (Status == ReFreshing) {
+            current = 1;
+            size = 4;
+        } else if (Status == LoadingMore) {
+            size = 3;
+        }
+
         Request request = chain.request();
         Request.Builder requestBuilder = request.newBuilder();
         // 添加请求头信息
@@ -155,8 +201,8 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         // get接口添加公共参数
         if (TextUtils.equals(request.method(), "GET")) {
             HttpUrl.Builder httpUrlBuilder = request.url().newBuilder();
-            httpUrlBuilder.addQueryParameter("current", "1");
-            httpUrlBuilder.addQueryParameter("size", "5");
+            httpUrlBuilder.addQueryParameter("current", String.valueOf(current));
+            httpUrlBuilder.addQueryParameter("size", String.valueOf(size));
 
             requestBuilder.url(httpUrlBuilder.build());
         }
