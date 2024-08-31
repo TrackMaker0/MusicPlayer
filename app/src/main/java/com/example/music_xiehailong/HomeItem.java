@@ -2,7 +2,7 @@ package com.example.music_xiehailong;
 
 import java.util.List;
 
-public class HomeItem {
+public class HomeItem extends MultipleItem {
     public static final int TYPE_BANNER = 1;
     public static final int TYPE_HORIZONTAL_CARD = 2;
     public static final int TYPE_SINGLE_COLUMN = 3;
@@ -13,6 +13,7 @@ public class HomeItem {
     private List<MusicInfo> contentItems;
 
     public HomeItem(int moduleType, String moduleName, List<MusicInfo> contentItems) {
+        super(moduleType, moduleName, contentItems);
         this.moduleType = moduleType;
         this.moduleName = moduleName;
         this.contentItems = contentItems;
@@ -39,6 +40,14 @@ public class HomeItem {
     }
 
     public void setContentItems(List<MusicInfo> contentItems) {
+        this.contentItems = contentItems;
+    }
+
+    public List<MusicInfo> getMusicInfoList() {
+        return contentItems;
+    }
+
+    public void setMusicInfoList(List<MusicInfo> contentItems) {
         this.contentItems = contentItems;
     }
 }

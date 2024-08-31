@@ -14,6 +14,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.chad.library.adapter.base.listener.OnLoadMoreListener;
+import com.chad.library.adapter.base.module.BaseLoadMoreModule;
 import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
@@ -42,8 +43,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     private SwipeRefreshLayout swipeRefreshView;
     private List<HomeItem> homeItems;
     private List<MultipleItem> itemList;
-    private HomeAdapter adapter;
-    private HomeBaseQuickAdapter baseQuickAdapter;
+    private HomeBaseQuickAdapter adapter;
     private final int ReFreshing = 0;
     private final int LoadingMore = 1;
     private final int DoNothing = 3;
@@ -61,8 +61,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
 
         homeItems = new ArrayList<>();
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-//        baseQuickAdapter = new HomeBaseQuickAdapter(this, itemList);
-        adapter = new HomeAdapter(this, homeItems);
+        adapter = new HomeBaseQuickAdapter(this, homeItems);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
@@ -76,13 +75,15 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
             }
         });
 
-//        adapter.getLoadMoreModule().setOnLoadMoreListener(new OnLoadMoreListener() {
-//            @Override
-//            public void onLoadMore() {
-//                Status = LoadingMore;
-//                makeOkHttpRequest();
-//            }
-//        });
+        BaseLoadMoreModule loadMoreModule = adapter.getLoadMoreModule();
+        loadMoreModule.setOnLoadMoreListener(new OnLoadMoreListener() {
+            @Override
+            public void onLoadMore() {
+                Status = LoadingMore;
+                makeOkHttpRequest();
+                loadMoreModule.loadMoreComplete();
+            }
+        });
 
     }
 
