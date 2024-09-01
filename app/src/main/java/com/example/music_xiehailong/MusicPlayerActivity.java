@@ -194,6 +194,12 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         // 退出函数绑定
         leaveView.setOnClickListener(v -> finish());
+
+        // 歌曲列表
+        listView.setOnClickListener(v -> {
+            SongListBottomSheetFragment bottomSheet = new SongListBottomSheetFragment();
+            bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
+        });
     }
 
     private void setupMediaPlayer() {

@@ -14,4 +14,8 @@ public class DataManager {
         if (musicInfoList.contains(musicInfo)) return;
         musicInfoList.add(index, musicInfo);
     }
+
+    public static void remove(MusicInfo musicInfo) {
+        musicInfoList.remove(musicInfo);
+    }
 }

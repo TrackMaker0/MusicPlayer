@@ -31,9 +31,11 @@ public class MusicInfo implements Parcelable {
     @Override
     public boolean equals(@Nullable Object obj) {
         if (obj == null) return false;
-        if (obj instanceof MusicInfo) return false;
-        MusicInfo musicInfo = (MusicInfo) obj;
-        return super.equals(musicInfo.id);
+        if (obj instanceof MusicInfo) {
+            MusicInfo musicInfo = (MusicInfo) obj;
+            return this.id == musicInfo.id;
+        }
+        return false;
     }
 
     public static final Creator<MusicInfo> CREATOR = new Creator<MusicInfo>() {
