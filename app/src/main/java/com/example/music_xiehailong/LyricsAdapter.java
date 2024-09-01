@@ -1,23 +1,33 @@
 package com.example.music_xiehailong;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.chad.library.adapter.base.listener.OnItemClickListener;
+
+import java.io.IOException;
 import java.util.List;
 
 public class LyricsAdapter extends RecyclerView.Adapter<LyricsAdapter.LyricsViewHolder> {
 
     private List<LrcParser.LrcLine> lrcLines;
+    private OnItemClickListener onItemClickListener;
     private int currentLineIndex = 0;
 
-    public LyricsAdapter(List<LrcParser.LrcLine> lrcLines) {
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+
+    public LyricsAdapter(List<LrcParser.LrcLine> lrcLines, OnItemClickListener onItemClickListener) {
         this.lrcLines = lrcLines;
+        this.onItemClickListener = onItemClickListener;
     }
 
     @NonNull
@@ -37,9 +47,14 @@ public class LyricsAdapter extends RecyclerView.Adapter<LyricsAdapter.LyricsView
             holder.lyricsTextView.setTextColor(Color.WHITE);
             holder.lyricsTextView.setTypeface(holder.lyricsTextView.getTypeface(), Typeface.BOLD);
         } else {
-            holder.lyricsTextView.setTextColor(Color.argb(127,255,255,255));
+            holder.lyricsTextView.setTextColor(Color.argb(127, 255, 255, 255));
             holder.lyricsTextView.setTypeface(holder.lyricsTextView.getTypeface(), Typeface.NORMAL);
         }
+        holder.itemView.setOnClickListener(v -> {
+            if (onItemClickListener != null) {
+                onItemClickListener.onItemClick(position);
+            }
+        });
     }
 
     @Override

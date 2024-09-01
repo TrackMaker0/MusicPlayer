@@ -120,6 +120,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
             coverView.setVisibility(View.GONE);
             lyricsRecyclerView.setVisibility(View.VISIBLE);
         });
+
+        // 该点击函数不起作用
         lyricsRecyclerView.setOnClickListener(v -> {
             lyricsRecyclerView.setVisibility(View.GONE);
             coverView.setVisibility(View.VISIBLE);
@@ -293,7 +295,15 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     for (int i = 0; i < EMPTY_LINE; i++)
                         lrcLines.add(new LrcParser.LrcLine(0, ""));
 
-                    lyricsAdapter = new LyricsAdapter(lrcLines);
+                    // 实现 OnItemClickListener 接口
+                    LyricsAdapter.OnItemClickListener onItemClickListener = new LyricsAdapter.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(int position) {
+                            lyricsRecyclerView.setVisibility(View.GONE);
+                            coverView.setVisibility(View.VISIBLE);
+                        }
+                    };
+                    lyricsAdapter = new LyricsAdapter(lrcLines, onItemClickListener);
                     lyricsRecyclerView.setAdapter(lyricsAdapter);
                 });
             }
