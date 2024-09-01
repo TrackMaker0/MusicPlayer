@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     public static final String TAG = "MyMainActivity";
     private SwipeRefreshLayout swipeRefreshView;
     private List<HomeItem> homeItems;
+    private List<MusicInfo> musicInfoList;
     private HomeBaseQuickAdapter adapter;
     private int current = 1;
     private int size = 4;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         swipeRefreshView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                if (adapter.getLoadMoreModule().isLoading()) return;
                 homeItems.clear();
                 makeOkHttpRequest();
             }
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         adapter.getLoadMoreModule().setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore() {
+                if (swipeRefreshView.isRefreshing()) return;
                 makeOkHttpRequest();
                 adapter.getLoadMoreModule().loadMoreComplete();
             }
@@ -78,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
 
 //    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
 //    private void onMessageEvent(MessageEvent event) {
-//        adapter.getLoadMoreModule().loadMoreComplete();
+//        musicInfoList.add(event.getMusicInfo());
 //    }
 
     public void makeOkHttpRequest() {

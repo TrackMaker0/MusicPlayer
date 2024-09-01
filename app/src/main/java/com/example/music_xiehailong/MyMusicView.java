@@ -1,6 +1,8 @@
 package com.example.music_xiehailong;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +13,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.request.RequestOptions;
 
 public class MyMusicView extends androidx.constraintlayout.widget.ConstraintLayout {
 
@@ -39,21 +44,26 @@ public class MyMusicView extends androidx.constraintlayout.widget.ConstraintLayo
                     .load(musicInfo.getCoverUrl())
                     .placeholder(R.drawable.placeholder) // 设置加载中的占位图
                     .error(R.drawable.error) // 设置加载失败的占位图
+//                    .apply(RequestOptions.bitmapTransform(new RoundedCorners(50)))
                     .into(myMusicView.getCoverView());
             myMusicView.getMusicNameView().setText(musicInfo.getMusicName());
             myMusicView.getAuthorView().setText(musicInfo.getAuthor());
             myMusicView.getAddBtn().setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    DataManager.addItem(musicInfo);
                     Toast.makeText(context, "将" + musicInfo.getMusicName() + "添加到音乐列表", Toast.LENGTH_SHORT).show();
                 }
             });
-//            myMusicView.getCoverView().setOnClickListener(new OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    Toast.makeText(context, musicInfo.getMusicName(), Toast.LENGTH_SHORT).show();
-//                }
-//            });
+            myMusicView.getCoverView().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, MusicPlayerActivity.class);
+//                    intent.putExtra("musicInfo", (Parcelable) musicInfo);
+                    DataManager.addItem(0, musicInfo);
+                    context.startActivity(intent);
+                }
+            });
         }
     }
 
@@ -61,31 +71,31 @@ public class MyMusicView extends androidx.constraintlayout.widget.ConstraintLayo
         return coverView;
     }
 
-    public void setCoverView(ImageView coverView) {
-        this.coverView = coverView;
-    }
-
     public TextView getMusicNameView() {
         return musicNameView;
-    }
-
-    public void setMusicNameView(TextView musicNameView) {
-        this.musicNameView = musicNameView;
     }
 
     public TextView getAuthorView() {
         return authorView;
     }
 
-    public void setAuthorView(TextView authorView) {
-        this.authorView = authorView;
-    }
-
     public View getAddBtn() {
         return addBtn;
     }
 
-    public void setAddBtn(View addBtn) {
-        this.addBtn = addBtn;
+    public void setCoverImageResource(int imageResId) {
+        coverView.setImageResource(imageResId);
+    }
+
+    public void setMusicName(String musicName) {
+        authorView.setText(musicName);
+    }
+
+    public void setAuthor(String author) {
+        authorView.setText(author);
+    }
+
+    public void setAddBtnListener(OnClickListener listener) {
+        addBtn.setOnClickListener(listener);
     }
 }

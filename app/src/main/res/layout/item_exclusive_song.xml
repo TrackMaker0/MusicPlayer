@@ -2,22 +2,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    tools:context=".ExclusiveSongFragment"
-    android:orientation="vertical">
+    android:layout_height="200dp"
+    android:orientation="vertical"
+    android:padding="16dp" >
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="16dp"
         android:text="专属好歌"
         android:textSize="20sp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/exclusive_recycler"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="match_parent"
         android:orientation="horizontal" />
 
 </LinearLayout>

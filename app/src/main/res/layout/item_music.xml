@@ -8,9 +8,7 @@
     <ImageView
         android:id="@+id/cover"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginEnd="30dp"
+        android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:src="@drawable/sample_image"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -22,23 +20,23 @@
         android:id="@+id/musicName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
+        android:layout_marginStart="16dp"
         android:layout_marginBottom="16dp"
         android:text="musicName"
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/author"
-        app:layout_constraintStart_toStartOf="@+id/cover" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
+        android:layout_marginStart="16dp"
         android:layout_marginBottom="16dp"
         android:text="author"
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/cover" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/addItem"
@@ -48,6 +46,6 @@
         android:layout_marginBottom="16dp"
         android:src="@drawable/ic_additem"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/cover" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/backgroundView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MusicPlayerActivity">
+
+    <ImageView
+        android:id="@+id/loop"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginBottom="70dp"
+        android:src="@drawable/ic_ordered"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/leave"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="32dp"
+        android:src="@drawable/ic_leave"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/like"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:src="@drawable/like_selector"
+        app:layout_constraintBottom_toTopOf="@+id/seekBar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/prev"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginBottom="70dp"
+        android:src="@drawable/ic_prev"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/play"
+        app:layout_constraintStart_toEndOf="@+id/loop" />
+
+    <ImageView
+        android:id="@+id/play"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="70dp"
+        android:src="@drawable/ic_play"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/next"
+        app:layout_constraintHorizontal_bias="0.545"
+        app:layout_constraintStart_toEndOf="@+id/prev" />
+
+    <ImageView
+        android:id="@+id/next"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="70dp"
+        android:src="@drawable/ic_next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/list"
+        app:layout_constraintStart_toEndOf="@+id/play" />
+
+    <ImageView
+        android:id="@+id/list"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="70dp"
+        android:src="@drawable/ic_list"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="0dp"
+        android:layout_height="10dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="70dp"
+        app:layout_constraintBottom_toTopOf="@+id/play"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/currentTime"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="6dp"
+        android:text="00 : 30"
+        android:textAlignment="textStart"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/seekBar" />
+
+    <TextView
+        android:id="@+id/totalTime"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="24dp"
+        android:text="05 : 45"
+        android:textAlignment="textEnd"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/seekBar" />
+
+    <TextView
+        android:id="@+id/musicName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="8dp"
+        android:text="到此为止"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/author"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/author"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="32dp"
+        android:text="徐佳萤"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/seekBar"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/cover"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/seekBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/logo" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/lyrics_recycler_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:padding="16dp"
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/musicName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/leave" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

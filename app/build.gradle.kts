@@ -40,7 +40,7 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 
-    implementation ("androidx.viewpager2:viewpager2:1.0.0")
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
     implementation("org.greenrobot:eventbus:3.3.1")
     implementation("com.github.bumptech.glide:glide:5.0.0-rc01")
     implementation("com.github.anrwatchdog:anrwatchdog:1.4.0")
@@ -51,6 +51,7 @@ dependencies {
     implementation("io.github.cymchad:BaseRecyclerViewAdapterHelper:3.0.14")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("org.apache.commons:commons-lang3:3.9")
+    implementation("androidx.palette:palette:1.0.0")
 //    implementation("com.squareup.retrofit2:retrofit:2.9.0")
 //    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 //    implementation("com.squareup.retrofit2:converter-scalars:2.8.1")
