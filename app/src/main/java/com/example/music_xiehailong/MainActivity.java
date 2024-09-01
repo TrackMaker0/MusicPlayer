@@ -8,8 +8,12 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -43,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     private List<HomeItem> homeItems;
     private List<MusicInfo> musicInfoList;
     private HomeBaseQuickAdapter adapter;
+    private boolean isLoading = false;
     private int current = 1;
     private int size = 4;
 
@@ -60,29 +65,19 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
 
         swipeRefreshView = findViewById(R.id.swipe_refresh_layout);
 
-        swipeRefreshView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                if (adapter.getLoadMoreModule().isLoading()) return;
-                homeItems.clear();
-                makeOkHttpRequest();
-            }
+        swipeRefreshView.setOnRefreshListener(() -> {
+            if (isLoading || adapter.getLoadMoreModule().isLoading()) return;
+            isLoading = true;
+            homeItems.clear();
+            makeOkHttpRequest();
         });
 
-        adapter.getLoadMoreModule().setOnLoadMoreListener(new OnLoadMoreListener() {
-            @Override
-            public void onLoadMore() {
-                if (swipeRefreshView.isRefreshing()) return;
-                makeOkHttpRequest();
-                adapter.getLoadMoreModule().loadMoreComplete();
-            }
+        adapter.getLoadMoreModule().setOnLoadMoreListener(() -> {
+            if (isLoading || swipeRefreshView.isRefreshing()) return;
+            isLoading = true;
+            makeOkHttpRequest();
         });
     }
-
-//    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
-//    private void onMessageEvent(MessageEvent event) {
-//        musicInfoList.add(event.getMusicInfo());
-//    }
 
     public void makeOkHttpRequest() {
         // 创建OkHttpClient请求
@@ -108,18 +103,28 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
                                 UpdateHomeItemList(module);
                             }
                         }
+                        isLoading = false;
                         swipeRefreshView.setRefreshing(false);
-//                        EventBus.getDefault().postSticky(new MessageEvent());
+                        adapter.getLoadMoreModule().loadMoreComplete();
                     });
-
                 } else {
                     Log.e(TAG, "OkHttp Request failed with code: " + response.code());
+                    runOnUiThread(() -> {
+                        isLoading = false;
+                        swipeRefreshView.setRefreshing(false);
+                        adapter.getLoadMoreModule().loadMoreComplete();
+                    });
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
+                runOnUiThread(() -> {
+                    isLoading = false;
+                    swipeRefreshView.setRefreshing(false);
+                    adapter.getLoadMoreModule().loadMoreComplete();
+                });
             }
         });
     }
@@ -128,8 +133,8 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     private void UpdateHomeItemList(Module module) {
         if (module.getStyle() == 1) {
             homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
-            adapter.notifyItemChanged(0);
-//            adapter.notifyDataSetChanged();
+//            adapter.notifyItemChanged(0);
+            adapter.notifyDataSetChanged();
         } else if (module.getStyle() == 2) {
             if (homeItems.size() > 1) {
                 List<MusicInfo> existingList = homeItems.get(1).getContentItems();
@@ -140,23 +145,23 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
             } else {
                 homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), module.getMusicInfoList()));
             }
-            adapter.notifyItemChanged(1);
-//            adapter.notifyDataSetChanged();
+//            adapter.notifyItemChanged(1);
+            adapter.notifyDataSetChanged();
         } else if (module.getStyle() == 3) {
             int start = homeItems.size();
             for (MusicInfo musicInfo : module.getMusicInfoList()) {
                 homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), Collections.singletonList(musicInfo)));
             }
-            adapter.notifyItemRangeChanged(start, homeItems.size() - start);
-//            adapter.notifyDataSetChanged();
+//            adapter.notifyItemRangeChanged(start, homeItems.size() - start);
+            adapter.notifyDataSetChanged();
         } else if (module.getStyle() == 4) {
             int start = homeItems.size();
             List<MusicInfo> musicInfoList = module.getMusicInfoList();
             for (int i = 0; i < musicInfoList.size(); i += 2) {
                 homeItems.add(new HomeItem(module.getStyle(), module.getModuleName(), Arrays.asList(musicInfoList.get(i), musicInfoList.get(i + 1))));
             }
-            adapter.notifyItemRangeChanged(start, homeItems.size() - start);
-//            adapter.notifyDataSetChanged();
+//            adapter.notifyItemRangeChanged(start, homeItems.size() - start);
+            adapter.notifyDataSetChanged();
         }
     }
 
@@ -170,6 +175,8 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
             current += size;
             size = 1;
         }
+
+        Log.d(TAG, "intercept: " + current + "and" + size);
 
         Request request = chain.request();
         Request.Builder requestBuilder = request.newBuilder();
@@ -185,5 +192,17 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
             requestBuilder.url(httpUrlBuilder.build());
         }
         return chain.proceed(requestBuilder.build());
+    }
+
+    @Override
+    public void startActivity(Intent intent) {
+        super.startActivity(intent);
+        overridePendingTransition(R.anim.slide_up_in, R.anim.slide_up_out);
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.slide_down_in, R.anim.slide_down_out);
     }
 }

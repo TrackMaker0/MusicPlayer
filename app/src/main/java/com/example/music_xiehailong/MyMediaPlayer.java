@@ -20,12 +20,13 @@ public class MyMediaPlayer extends MediaPlayer {
 
     private int loopState = 0;//循环状态  0-顺序播放 1-单曲循环 2-随机播放
     private final int LOOP_ORDER = 0;
-    private final int LOOP_SINGLE= 1;
+    private final int LOOP_SINGLE = 1;
     private final int LOOP_RANDOM = 2;
 
     public MyMediaPlayer(Context context) {
         this.context = context;
         this.playlist = DataManager.musicInfoList;
+        setCurrentSongIndex(0);
     }
 
     public void setPlaylist(List<MusicInfo> playlist) {
@@ -116,6 +117,10 @@ public class MyMediaPlayer extends MediaPlayer {
         prepareAndPlay();
     }
 
+    public boolean isPrepared() {
+        return this.isPrepared;
+    }
+
     public void setPrepared(boolean prepared) {
         this.isPrepared = prepared;
     }
@@ -127,5 +132,6 @@ public class MyMediaPlayer extends MediaPlayer {
     public int getDuration() {
         return isPrepared ? super.getDuration() : 0;
     }
+
 }
 
