@@ -163,8 +163,22 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 startRotationAnimation(currentRotation);
             }
         });
-        nextView.setOnClickListener(v -> musicService.nextMusic());
-        prevView.setOnClickListener(v -> musicService.prevMusic());
+        nextView.setOnClickListener(v -> {
+            musicService.nextMusic();
+            playView.setImageResource(R.drawable.ic_pause);  // 切换为暂停图标
+            // 开始动画
+            if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
+            float currentRotation = getCurrentRotationAngle();
+            startRotationAnimation(currentRotation);
+        });
+        prevView.setOnClickListener(v -> {
+            musicService.prevMusic();
+            playView.setImageResource(R.drawable.ic_pause);  // 切换为暂停图标
+            // 开始动画
+            if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
+            float currentRotation = getCurrentRotationAngle();
+            startRotationAnimation(currentRotation);
+        });
         loopView.setOnClickListener(v -> {
             loopState = (loopState + 1) % numLoopState;
             musicService.setLoopState(loopState);
