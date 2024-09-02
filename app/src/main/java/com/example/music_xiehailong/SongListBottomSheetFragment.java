@@ -36,16 +36,16 @@ public class SongListBottomSheetFragment extends BottomSheetDialogFragment {
         Log.d("MyTest", "onCreateView: mode" + mode);
         if (mode == 0) {
             loopModeView.setText("顺序播放");
-            drawableLeft = getResources().getDrawable(R.drawable.ic_loop);
+            drawableLeft = getResources().getDrawable(R.drawable.ic_ordered, null);
         } else if (mode == 1) {
             loopModeView.setText("单曲循环");
-            drawableLeft = getResources().getDrawable(R.drawable.ic_loop);
+            drawableLeft = getResources().getDrawable(R.drawable.ic_loop, null);
         } else if (mode == 2) {
             loopModeView.setText("随机播放");
-            drawableLeft = getResources().getDrawable(R.drawable.ic_random);
+            drawableLeft = getResources().getDrawable(R.drawable.ic_random, null);
         }
 
-        loopModeView.setCompoundDrawables(drawableLeft, null, null, null);
+        loopModeView.setCompoundDrawablesWithIntrinsicBounds(drawableLeft, null, null, null);
 
         totalCountView.setText(String.valueOf(DataManager.getCount()));
 
