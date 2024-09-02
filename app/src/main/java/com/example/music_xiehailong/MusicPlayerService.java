@@ -82,6 +82,10 @@ public class MusicPlayerService extends Service {
         mediaPlayer.setLoopState(loopState);
     }
 
+    public int getLoopState() {
+        return mediaPlayer.getLoopState();
+    }
+
     public void seekTo(int progress) {
         mediaPlayer.seekTo(progress);
     }
