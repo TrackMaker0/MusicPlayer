@@ -19,7 +19,6 @@ public class Module {
     @SerializedName("musicInfoList")
     private List<MusicInfo> musicInfoList;
 
-    // Getters and Setters
     public int getModuleConfigId() { return moduleConfigId; }
     public void setModuleConfigId(int moduleConfigId) { this.moduleConfigId = moduleConfigId; }
 
