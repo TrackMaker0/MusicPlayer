@@ -7,6 +7,7 @@ import androidx.palette.graphics.Palette;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
@@ -62,7 +63,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private final int EMPTY_LINE = 10;//歌词前后空白行
     private int numLoopState = 3;//循环状态数
     private int UserNotScrollTime = 0;// 用户停止滑动时间
-    private boolean statList = true;//播放列表可见, 初始默认可见
     private boolean isUserSeeking = false;//是否在调整进度条
     private boolean isUserScrolling = false;//是否在滚动歌词
     private boolean FistPrepare = true;//是否在调整进度条
@@ -217,6 +217,18 @@ public class MusicPlayerActivity extends AppCompatActivity {
             SongListBottomSheetFragment bottomSheet = new SongListBottomSheetFragment();
             bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
         });
+
+        // Like事件绑定
+        likeView.setOnClickListener(v -> {
+            boolean isLiked = DataManager.getLikeStatus(musicService.getCurrentMusicInfo());
+            if (isLiked) {
+                DataManager.setLikeStatus(musicService.getCurrentMusicInfo(), false);
+                animateUnlike(likeView);
+            } else {
+                DataManager.setLikeStatus(musicService.getCurrentMusicInfo(), true);
+                animateLike(likeView);
+            }
+        });
     }
 
     private void ChangeStateToPause() {
@@ -282,13 +294,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
         MusicInfo musicInfo = musicService.getCurrentMusicInfo();
         if (musicInfo == null) return;
         // 更新歌曲信息，背景颜色
-        Glide.with(this)
-                .asBitmap()
-                .load(musicInfo.getCoverUrl())
-                .placeholder(R.drawable.placeholder) // 设置加载中的占位图
+        Glide.with(this).asBitmap().load(musicInfo.getCoverUrl()).placeholder(R.drawable.placeholder) // 设置加载中的占位图
                 .error(R.drawable.error) // 设置加载失败的占位图
-                .apply(RequestOptions.bitmapTransform(new CircleCrop()))
-                .into(new CustomTarget<Bitmap>() {
+                .apply(RequestOptions.bitmapTransform(new CircleCrop())).into(new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
                         Palette.from(resource).generate(palette -> {
@@ -340,6 +348,11 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         // 获取歌词
         getLyricFromUrl();
+
+        // 更新Like状态
+        boolean isLiked = DataManager.getLikeStatus(musicService.getCurrentMusicInfo());
+        if (isLiked) likeView.setImageResource(R.drawable.ic_like);
+        else likeView.setImageResource(R.drawable.ic_unlike);
 
         // 更新播放状态控件
         updateTime();
@@ -423,11 +436,26 @@ public class MusicPlayerActivity extends AppCompatActivity {
         lyricsAdapter.updateCurrentLine(currentLineIndex);
     }
 
+    private void animateLike(ImageView view) {
+        view.animate().scaleX(1.2f).scaleY(1.2f).rotationY(360f).setDuration(1000).withEndAction(() -> {
+            view.setScaleX(1.0f);
+            view.setScaleY(1.0f);
+            view.setImageResource(R.drawable.ic_like);
+        }).start();
+    }
+
+    private void animateUnlike(ImageView view) {
+        view.animate().scaleX(0.8f).scaleY(0.8f).setDuration(1000).withEndAction(() -> {
+            view.setScaleX(1.0f);
+            view.setScaleY(1.0f);
+            view.setImageResource(R.drawable.ic_unlike);
+        }).start();
+    }
+
     private int findCurrentLineIndex(int currentMillis) {
         for (int i = 0; i < lrcLines.size(); i++) {
             if (i == lrcLines.size() - 1) return i;
-            if (currentMillis >= lrcLines.get(i).timeInMillis &&
-                    currentMillis < lrcLines.get(i + 1).timeInMillis) {
+            if (currentMillis >= lrcLines.get(i).timeInMillis && currentMillis < lrcLines.get(i + 1).timeInMillis) {
                 return i;
             }
         }

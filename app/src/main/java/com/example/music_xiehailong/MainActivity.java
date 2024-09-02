@@ -42,7 +42,6 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements Interceptor {
 
-
     public static final String BASE_URL_OKHTTP = "https://hotfix-service-prod.g.mi.com/music/homePage";
     public static final String TAG = "MyMainActivity";
     private SwipeRefreshLayout swipeRefreshView;
@@ -60,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
 
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        DataManager.loadLikeStatus(this);
 
         homeItems = new ArrayList<>();
         makeOkHttpRequest();
@@ -197,6 +197,12 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
             requestBuilder.url(httpUrlBuilder.build());
         }
         return chain.proceed(requestBuilder.build());
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        DataManager.saveLikeStatus(this);
     }
 
     @Override
