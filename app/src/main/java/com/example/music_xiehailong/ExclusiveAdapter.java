@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class ExclusiveAdapter extends RecyclerView.Adapter<ExclusiveAdapter.ExclusiveViewHolder> {
+public class ExclusiveAdapter extends RecyclerView.Adapter<ExclusiveAdapter.ExclusiveItemViewHolder> {
 
     private List<MusicInfo> musicInfoList;
     private Context context;
@@ -22,13 +22,13 @@ public class ExclusiveAdapter extends RecyclerView.Adapter<ExclusiveAdapter.Excl
 
     @NonNull
     @Override
-    public ExclusiveViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ExclusiveItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_music_exclusive, parent, false);
-        return new ExclusiveViewHolder(view);
+        return new ExclusiveItemViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ExclusiveViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ExclusiveItemViewHolder holder, int position) {
         MusicInfo musicInfo = musicInfoList.get(position);
         holder.bind(context, holder.itemView, musicInfo);
     }
@@ -38,10 +38,10 @@ public class ExclusiveAdapter extends RecyclerView.Adapter<ExclusiveAdapter.Excl
         return musicInfoList.size();
     }
 
-    public static class ExclusiveViewHolder extends RecyclerView.ViewHolder {
+    public static class ExclusiveItemViewHolder extends RecyclerView.ViewHolder {
         private MyMusicView myMusicView;
 
-        public ExclusiveViewHolder(@NonNull View itemView) {
+        public ExclusiveItemViewHolder(@NonNull View itemView) {
             super(itemView);
             myMusicView = itemView.findViewById(R.id.myExclusiveMusicView);
         }

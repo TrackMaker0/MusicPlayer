@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerViewHolder> {
+public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerItemViewHolder> {
 
     private List<MusicInfo> musicInfoList;
     private Context context;
@@ -22,13 +22,13 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
 
     @NonNull
     @Override
-    public BannerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public BannerItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_music_banner, parent, false);
-        return new BannerViewHolder(view);
+        return new BannerItemViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull BannerViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull BannerItemViewHolder holder, int position) {
         MusicInfo musicInfo = musicInfoList.get(position);
         holder.bind(context, holder.itemView, musicInfo);
     }
@@ -38,10 +38,10 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
         return musicInfoList.size();
     }
 
-    public static class BannerViewHolder extends RecyclerView.ViewHolder {
+    public static class BannerItemViewHolder extends RecyclerView.ViewHolder {
         private MyMusicView myMusicView;
 
-        public BannerViewHolder(@NonNull View itemView) {
+        public BannerItemViewHolder(@NonNull View itemView) {
             super(itemView);
             myMusicView = itemView.findViewById(R.id.myBannerMusicView);
         }

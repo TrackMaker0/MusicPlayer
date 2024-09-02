@@ -56,7 +56,7 @@ public class HomeBaseQuickAdapter extends BaseMultiItemQuickAdapter<HomeItem, Ba
         private ViewPager2 viewPager;
         private BannerAdapter adapter;
         private Runnable autoScrollRunnable;
-        private final int LooperTime = 10 * 1000;
+        private final int LooperTime = 6 * 1000;
 
         public BannerViewHolder(@NonNull View itemView) {
             super(itemView);
