@@ -39,6 +39,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -119,13 +120,13 @@ public class MusicPlayerActivity extends AppCompatActivity {
         EventBus.getDefault().register(this);
         Intent intent = new Intent(this, MusicPlayerService.class);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-        DataManager.setOnListEmptyListener(new DataManager.OnListEmptyListener() {
+        DataManager.setOnListEmptyListener(new WeakReference<>(new DataManager.OnListEmptyListener() {
             @Override
             public void OnListEmpty() {
                 if (bottomSheet != null) bottomSheet.dismiss();
                 finish();
             }
-        });
+        }).get());
 
         // 初始化控件和默认参数
         Init();

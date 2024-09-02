@@ -3,7 +3,6 @@ package com.example.music_xiehailong;
 import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,12 +15,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+import java.lang.ref.WeakReference;
+
 public class SongListBottomSheetFragment extends BottomSheetDialogFragment {
 
     private RecyclerView recyclerView;
     private SongListAdapter adapter;
     private TextView totalCountView;
     private TextView loopModeView;
+    private SongListAdapter.OnDataSetChangeListener onDataSetChangeListener;
 
     @SuppressLint("UseCompatLoadingForDrawables")
     @Nullable
@@ -34,7 +36,6 @@ public class SongListBottomSheetFragment extends BottomSheetDialogFragment {
 
         Drawable drawableLeft = null;
         int mode = DataManager.getMusicPlayerService().getLoopState();
-        Log.d("MyTest", "onCreateView: mode" + mode);
         if (mode == 0) {
             loopModeView.setText("顺序播放");
             drawableLeft = getResources().getDrawable(R.drawable.ic_ordered, null);
@@ -51,18 +52,29 @@ public class SongListBottomSheetFragment extends BottomSheetDialogFragment {
         totalCountView.setText(String.valueOf(DataManager.getCount()));
 
         // 实现 onDataSetChangeListener 接口
-        SongListAdapter.OnDataSetChangeListener onDataSetChangeListener = new SongListAdapter.OnDataSetChangeListener() {
+        onDataSetChangeListener = new WeakReference<>(new SongListAdapter.OnDataSetChangeListener() {
             @Override
             public void onDataSetChange() {
-                totalCountView.setText(String.valueOf(DataManager.getCount()));
+                if (totalCountView != null) {
+                    totalCountView.setText(String.valueOf(DataManager.getCount()));
+                }
             }
-        };
+        }).get();
 
-        // Initialize RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new SongListAdapter(DataManager.getMusicInfoList(), onDataSetChangeListener);
         recyclerView.setAdapter(adapter);
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // 清除对 View 和 Adapter 的引用，避免内存泄露
+        recyclerView.setAdapter(null);
+        recyclerView = null;
+        adapter = null;
+        onDataSetChangeListener = null;
     }
 }
