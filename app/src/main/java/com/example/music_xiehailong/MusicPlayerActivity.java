@@ -58,6 +58,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private Drawable pauseDrawable, playDrawable;
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable checkIfPreparedRunnable;
+    private SongListBottomSheetFragment bottomSheet;
     private boolean isBound = false;
 
     public static final String TAG = "MyMusicPlayerActivity";
@@ -82,6 +83,13 @@ public class MusicPlayerActivity extends AppCompatActivity {
         EventBus.getDefault().register(this);
         Intent intent = new Intent(this, MusicPlayerService.class);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        DataManager.setOnListEmptyListener(new DataManager.OnListEmptyListener() {
+            @Override
+            public void OnListEmpty() {
+                if (bottomSheet != null) bottomSheet.dismiss();
+                finish();
+            }
+        });
 
         // 初始化控件和默认参数
         Init();
@@ -169,6 +177,12 @@ public class MusicPlayerActivity extends AppCompatActivity {
         updateMusicInfo();
     }
 
+//    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+//    public void onMusicListEmptyEvent(MusicListEmptyEvent event){
+//        if (bottomSheet != null) bottomSheet.dismiss();
+//        finish();
+//    }
+
     @SuppressLint("ClickableViewAccessibility")
     public void bindOnClickListener() {
 
@@ -247,7 +261,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         // 歌曲列表
         listView.setOnClickListener(v -> {
-            SongListBottomSheetFragment bottomSheet = new SongListBottomSheetFragment();
+            bottomSheet = new SongListBottomSheetFragment();
             bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
         });
 

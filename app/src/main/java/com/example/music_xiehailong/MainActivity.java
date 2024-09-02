@@ -63,10 +63,12 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     private Runnable checkIfPreparedRunnable;
     private ObjectAnimator rotateAnimator;
     private Drawable pauseDrawable, playDrawable;
+    private SongListBottomSheetFragment bottomSheet;
     private Intent serviceIntent;
     private ImageView floatingCover, floatingPlay, floatingList;
     private TextView floatingMusicName, floatingAuthor;
     private View floatingFill;
+    private View floatingView;
     private boolean isBound = false;
     private boolean isLoading = false;
     private int current = 1;
@@ -83,6 +85,15 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         DataManager.loadLikeStatus(this);
 
+//        // 改为使用EventBus
+//        DataManager.setOnListEmptyListener(new DataManager.OnListEmptyListener() {
+//            @Override
+//            public void OnListEmpty() {
+//                floatingView.setVisibility(View.GONE);
+//                if (bottomSheet != null) bottomSheet.dismiss();
+//            }
+//        });
+
         serviceIntent = new Intent(this, MusicPlayerService.class);
         startService(serviceIntent);
 
@@ -98,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         floatingPlay = findViewById(R.id.floatingPlay);
         floatingList = findViewById(R.id.floatingList);
         floatingFill = findViewById(R.id.floatingFill);
+        floatingView = findViewById(R.id.floatingView);
         pauseDrawable = getDrawable(R.drawable.ic_pause_black);
         playDrawable = getDrawable(R.drawable.ic_play_black);
     }
@@ -157,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         });
 
         floatingList.setOnClickListener(v -> {
-            SongListBottomSheetFragment bottomSheet = new SongListBottomSheetFragment();
+            bottomSheet = new SongListBottomSheetFragment();
             bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
         });
 
@@ -389,12 +401,24 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         updateFloatingView();
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    public void onMusicListEmptyEvent(MusicListEmptyEvent event){
+        if (event.isEmpty) {
+            floatingView.setVisibility(View.GONE);
+            if (bottomSheet != null) bottomSheet.dismiss();
+        } else {
+            floatingView.setVisibility(View.VISIBLE);
+            DataManager.nextMusic();
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
         Intent intent = new Intent(this, MusicPlayerService.class);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         EventBus.getDefault().register(this);
+        if (DataManager.getCount() != 0) floatingView.setVisibility(View.VISIBLE);
     }
 
     @Override

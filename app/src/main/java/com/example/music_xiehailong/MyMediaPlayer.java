@@ -113,6 +113,7 @@ public class MyMediaPlayer extends MediaPlayer {
 
     public void stopMusic() {
         stop();
+        playAllowed = false;
     }
 
     public int getTotalSeconds() {

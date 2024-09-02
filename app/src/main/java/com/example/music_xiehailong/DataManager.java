@@ -3,6 +3,7 @@ package com.example.music_xiehailong;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,6 +21,12 @@ public class DataManager {
     private static final String PREFS_NAME = "LikeStatusPrefs";
     private static final String LIKE_STATUS_KEY = "LikeStatus";
 
+    public static OnListEmptyListener onListEmptyListener;
+
+    public static interface OnListEmptyListener {
+        void OnListEmpty();
+    }
+
     public static List<MusicInfo> getMusicInfoList() {
         return musicInfoList;
     }
@@ -32,6 +39,10 @@ public class DataManager {
         if (musicPlayerService == null) return;
         if (!musicInfoList.contains(musicInfo)) return;
         musicPlayerService.setCurrentSongIndex(musicInfoList.indexOf(musicInfo));
+    }
+
+    public static void setOnListEmptyListener(OnListEmptyListener onListEmptyListener) {
+        DataManager.onListEmptyListener = onListEmptyListener;
     }
 
     public static MusicPlayerService getMusicPlayerService() {
@@ -51,19 +62,26 @@ public class DataManager {
     public static void addItem(MusicInfo musicInfo) {
         if (musicInfoList.contains(musicInfo)) return;
         musicInfoList.add(musicInfo);
+        if (musicInfoList.size() == 1)
+            EventBus.getDefault().postSticky(new MusicListEmptyEvent(false));
     }
 
     public static void addItem(int index, MusicInfo musicInfo) {
         if (musicInfoList.contains(musicInfo)) return;
         musicInfoList.add(index, musicInfo);
+        if (musicInfoList.size() == 1)
+            EventBus.getDefault().postSticky(new MusicListEmptyEvent(false));
     }
 
     public static void remove(MusicInfo musicInfo) {
         if (!musicInfoList.contains(musicInfo)) return;
-        if (musicInfoList.size() == 1) return;
         int position = musicInfoList.indexOf(musicInfo);
         musicInfoList.remove(musicInfo);
         musicPlayerService.notifyItemDeleted(position);
+        if (musicInfoList.isEmpty()) {
+            EventBus.getDefault().postSticky(new MusicListEmptyEvent(true));
+            if (onListEmptyListener != null) onListEmptyListener.OnListEmpty();
+        }
     }
 
     public static boolean getLikeStatus(MusicInfo currentMusicInfo) {
