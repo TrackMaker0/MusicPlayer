@@ -113,7 +113,7 @@ public class MyMediaPlayer extends MediaPlayer {
 
     public void nextMusic(int dist) {
         isPrepared = false;
-        currentSongIndex = (currentSongIndex + dist) % playlist.size();
+        currentSongIndex = (currentSongIndex + dist + playlist.size()) % playlist.size();
         prepareAndPlay();
     }
 

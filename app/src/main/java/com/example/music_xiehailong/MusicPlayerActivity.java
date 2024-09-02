@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
@@ -137,47 +139,48 @@ public class MusicPlayerActivity extends AppCompatActivity {
         lyricsRecyclerView = findViewById(R.id.lyrics_recycler_view);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     public void bindOnClickListener() {
 
+        GestureDetector gestureDetector = new GestureDetector(this, new SwipeGestureListener() {
+            @Override
+            public void onSwipeRight() {
+                musicService.nextMusic();
+                ChangeStateToPlay();
+            }
+
+            @Override
+            public void onSwipeLeft() {
+                musicService.prevMusic();
+                ChangeStateToPlay();
+            }
+        });
+
+        // 中心Cover点击和滑动事件绑定
         coverView.setOnClickListener(v -> {
             coverView.setVisibility(View.GONE);
             lyricsRecyclerView.setVisibility(View.VISIBLE);
         });
+        coverView.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
 
         // 播放控制绑定
         playView.setOnClickListener(v -> {
             if (!musicService.isPrepared()) return;
             if (musicService.isPlaying()) {
                 musicService.pauseMusic();
-                playView.setImageResource(R.drawable.ic_play);  // 切换为播放图标
-                // 停止动画
-                float currentRotation = coverView.getRotation();
-                setCurrentRotationAngle(currentRotation);
-                rotateAnimator.cancel();
+                ChangeStateToPause();
             } else {
                 musicService.playMusic();
-                playView.setImageResource(R.drawable.ic_pause);  // 切换为暂停图标
-                // 开始动画
-                if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
-                float currentRotation = getCurrentRotationAngle();
-                startRotationAnimation(currentRotation);
+                ChangeStateToPlay();
             }
         });
         nextView.setOnClickListener(v -> {
             musicService.nextMusic();
-            playView.setImageResource(R.drawable.ic_pause);  // 切换为暂停图标
-            // 开始动画
-            if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
-            float currentRotation = getCurrentRotationAngle();
-            startRotationAnimation(currentRotation);
+            ChangeStateToPlay();
         });
         prevView.setOnClickListener(v -> {
             musicService.prevMusic();
-            playView.setImageResource(R.drawable.ic_pause);  // 切换为暂停图标
-            // 开始动画
-            if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
-            float currentRotation = getCurrentRotationAngle();
-            startRotationAnimation(currentRotation);
+            ChangeStateToPlay();
         });
         loopView.setOnClickListener(v -> {
             loopState = (loopState + 1) % numLoopState;
@@ -214,6 +217,22 @@ public class MusicPlayerActivity extends AppCompatActivity {
             SongListBottomSheetFragment bottomSheet = new SongListBottomSheetFragment();
             bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
         });
+    }
+
+    private void ChangeStateToPause() {
+        playView.setImageResource(R.drawable.ic_play);  // 切换为播放图标
+        // 停止动画
+        float currentRotation = coverView.getRotation();
+        setCurrentRotationAngle(currentRotation);
+        rotateAnimator.cancel();
+    }
+
+    private void ChangeStateToPlay() {
+        playView.setImageResource(R.drawable.ic_pause);  // 切换为暂停图标
+        // 开始动画
+        if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
+        float currentRotation = getCurrentRotationAngle();
+        startRotationAnimation(currentRotation);
     }
 
     private void setupMediaPlayer() {
