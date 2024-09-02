@@ -536,6 +536,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
             unbindService(serviceConnection);
             isBound = false;
         }
+        // 解除监听器绑定，防止内存泄露
+        DataManager.setOnListEmptyListener(null);
     }
 
     @Override

@@ -52,7 +52,6 @@ public class MyMusicView extends androidx.constraintlayout.widget.ConstraintLayo
                 @Override
                 public void onClick(View v) {
                     DataManager.addItem(musicInfo);
-                    Toast.makeText(context, "将" + musicInfo.getMusicName() + "添加到音乐列表", Toast.LENGTH_SHORT).show();
                 }
             });
             myMusicView.getCoverView().setOnClickListener(new View.OnClickListener() {

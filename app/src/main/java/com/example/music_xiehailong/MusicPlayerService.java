@@ -6,11 +6,37 @@ import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 
+import java.lang.ref.WeakReference;
+
 public class MusicPlayerService extends Service {
 
     private MyMediaPlayer mediaPlayer;
+    private final IBinder binder = new MusicBinder(this);
 
     public MusicPlayerService() {
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mediaPlayer = new MyMediaPlayer(MusicPlayerService.this);
+    }
+
+    public static class MusicBinder extends Binder {
+        private final WeakReference<MusicPlayerService> service;
+
+        public MusicBinder(MusicPlayerService service) {
+            this.service = new WeakReference<>(service);
+        }
+
+        public MusicPlayerService getService() {
+            return service.get();
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
     }
 
     public boolean isPrepared() {
@@ -41,18 +67,6 @@ public class MusicPlayerService extends Service {
         return 3;
     }
 
-    public class MusicBinder extends Binder {
-        MusicPlayerService getService() {
-            return MusicPlayerService.this;
-        }
-    }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        mediaPlayer = new MyMediaPlayer(MusicPlayerService.this);
-    }
-
     public MyMediaPlayer getMediaPlayer() {
         return mediaPlayer;
     }
@@ -63,11 +77,6 @@ public class MusicPlayerService extends Service {
 
     public void pauseMusic() {
         mediaPlayer.pauseMusic();
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return new MusicBinder();
     }
 
     public boolean isPlaying() {
@@ -128,10 +137,11 @@ public class MusicPlayerService extends Service {
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
+        // 释放媒体播放器资源
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
         }
-        super.onDestroy();
     }
 }

@@ -432,6 +432,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        bottomSheet = null;
         if (isBound) {
             unbindService(serviceConnection);
             isBound = false;
