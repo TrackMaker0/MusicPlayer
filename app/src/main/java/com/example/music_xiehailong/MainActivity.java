@@ -390,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         if (event.isEmpty) {
             floatingView.setVisibility(View.GONE);
             if (bottomSheet != null) bottomSheet.dismiss();
-        } else {
+        } else if (floatingView.getVisibility() == View.GONE) {
             floatingView.setVisibility(View.VISIBLE);
             DataManager.nextMusic();
         }
