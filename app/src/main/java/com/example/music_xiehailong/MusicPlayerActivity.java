@@ -495,6 +495,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
         view.animate().scaleX(1.2f).scaleY(1.2f).rotationY(360f).setDuration(1000).withEndAction(() -> {
             view.setScaleX(1.0f);
             view.setScaleY(1.0f);
+            view.setRotationY(0f);  // 重置 rotationY 属性
             view.setImageResource(R.drawable.ic_like);
         }).start();
     }
