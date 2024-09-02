@@ -21,8 +21,15 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongVi
 
     private List<MusicInfo> musicInfoList; // Or any data model representing a song
 
-    public SongListAdapter(List<MusicInfo> musicInfoList) {
+    public SongListAdapter(List<MusicInfo> musicInfoList, OnDataSetChangeListener listener) {
         this.musicInfoList = musicInfoList;
+        this.onDataSetChangeListener = listener;
+    }
+
+    private SongListAdapter.OnDataSetChangeListener onDataSetChangeListener;
+
+    public interface OnDataSetChangeListener {
+        void onDataSetChange();
     }
 
     @NonNull
@@ -41,11 +48,13 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongVi
         holder.removeView.setOnClickListener(v -> {
             DataManager.remove(musicInfo);
             notifyDataSetChanged();
+            if (onDataSetChangeListener != null) onDataSetChangeListener.onDataSetChange();
         });
 
         holder.filledView.setOnClickListener(v -> {
             DataManager.setCurrentMusic(musicInfo);
             notifyDataSetChanged();
+            if (onDataSetChangeListener != null) onDataSetChangeListener.onDataSetChange();
         });
 
         MusicInfo currentMusicInfo = DataManager.getCurrentMusic();

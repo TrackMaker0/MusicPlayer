@@ -126,4 +126,8 @@ public class DataManager {
         if (musicPlayerService == null) return;
         musicPlayerService.nextMusic();
     }
+
+    public static int getCount() {
+        return musicInfoList.size();
+    }
 }
