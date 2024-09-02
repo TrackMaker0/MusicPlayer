@@ -1,6 +1,8 @@
 package com.example.music_xiehailong;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -11,6 +13,8 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.chad.library.adapter.base.BaseMultiItemQuickAdapter;
 import com.chad.library.adapter.base.module.LoadMoreModule;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.List;
 
@@ -55,19 +59,22 @@ public class HomeBaseQuickAdapter extends BaseMultiItemQuickAdapter<HomeItem, Ba
 
     public static class BannerViewHolder extends RecyclerView.ViewHolder {
         private ViewPager2 viewPager;
+        private TabLayout tabLayout;
         private BannerAdapter adapter;
         private Runnable autoScrollRunnable;
-        private final int LooperTime = 6 * 1000;
+        private final int LOOPER_TIME = 6 * 1000; // 每6秒自动轮播
 
         public BannerViewHolder(@NonNull View itemView) {
             super(itemView);
             viewPager = itemView.findViewById(R.id.banner_viewpager);
+            tabLayout = itemView.findViewById(R.id.tabLayout);
+            // 自动轮播
             autoScrollRunnable = new Runnable() {
                 @Override
                 public void run() {
                     int nextItem = (viewPager.getCurrentItem() + 1) % adapter.getItemCount();
                     viewPager.setCurrentItem(nextItem, true);
-                    viewPager.postDelayed(this, LooperTime); // 每3秒自动轮播
+                    viewPager.postDelayed(this, LOOPER_TIME);
                 }
             };
         }
@@ -75,7 +82,13 @@ public class HomeBaseQuickAdapter extends BaseMultiItemQuickAdapter<HomeItem, Ba
         public void bind(Context context, List<MusicInfo> musicInfoList) {
             adapter = new BannerAdapter(context, musicInfoList);
             viewPager.setAdapter(adapter);
-            viewPager.postDelayed(autoScrollRunnable, LooperTime);
+
+            // 绑定 TabLayout 和 ViewPager2
+            new TabLayoutMediator(tabLayout, viewPager,
+                    (tab, position) -> tab.setText("")
+            ).attach();
+
+            viewPager.postDelayed(autoScrollRunnable, LOOPER_TIME);
         }
     }
 
