@@ -12,10 +12,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 
 import com.chad.library.adapter.base.listener.OnLoadMoreListener;
 import com.google.gson.Gson;
@@ -55,6 +57,9 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getWindow().setStatusBarColor(Color.WHITE);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
         homeItems = new ArrayList<>();
         makeOkHttpRequest();

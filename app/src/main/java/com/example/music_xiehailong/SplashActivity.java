@@ -9,6 +9,7 @@ import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -31,6 +32,11 @@ public class SplashActivity extends AppCompatActivity {
 
         SharedPreferences sharedPreferences = getSharedPreferences("app_prefs", MODE_PRIVATE);
         boolean hasAgreed = sharedPreferences.getBoolean("has_agreed_privacy_policy", false);
+
+        // 设置通知栏颜色
+        getWindow().setStatusBarColor(Color.WHITE);
+        // 设置通知栏字体颜色
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
         if (!hasAgreed) {
             showPrivacyPolicyDialog();

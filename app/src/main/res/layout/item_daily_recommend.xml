@@ -15,7 +15,8 @@
         android:textStyle="bold"
         android:textSize="20sp" />
 
-    <include layout="@layout/item_music"
+    <com.example.music_xiehailong.MyMusicView
+        android:id="@+id/myRecommendMusicView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginStart="16dp"

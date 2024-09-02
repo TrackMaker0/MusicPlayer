@@ -406,9 +406,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
     private int findCurrentLineIndex(int currentMillis) {
         for (int i = 0; i < lrcLines.size(); i++) {
-            if (i == lrcLines.size() - 1 ||
-                    (currentMillis >= lrcLines.get(i).timeInMillis &&
-                            currentMillis < lrcLines.get(i + 1).timeInMillis)) {
+            if (i == lrcLines.size() - 1) return i;
+            if (currentMillis >= lrcLines.get(i).timeInMillis &&
+                    currentMillis < lrcLines.get(i + 1).timeInMillis) {
                 return i;
             }
         }

@@ -10,9 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.chad.library.adapter.base.listener.OnItemClickListener;
-
-import java.io.IOException;
 import java.util.List;
 
 public class LyricsAdapter extends RecyclerView.Adapter<LyricsAdapter.LyricsViewHolder> {
@@ -33,7 +30,7 @@ public class LyricsAdapter extends RecyclerView.Adapter<LyricsAdapter.LyricsView
     @NonNull
     @Override
     public LyricsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.lyrics_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_lyrics, parent, false);
         return new LyricsViewHolder(view);
     }
 
