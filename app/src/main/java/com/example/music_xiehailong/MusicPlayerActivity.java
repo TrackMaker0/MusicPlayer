@@ -129,6 +129,11 @@ public class MusicPlayerActivity extends AppCompatActivity {
             } catch (IOException e) {
                 Log.e(TAG, "Error updating music info", e);
             }
+            // 获取显示循环状态
+            loopState = musicPlayerService.getLoopState();
+            if (loopState == LOOP_ORDER) loopView.setImageResource(R.drawable.ic_ordered);
+            if (loopState == LOOP_SINGLE) loopView.setImageResource(R.drawable.ic_loop);
+            if (loopState == LOOP_RANDOM) loopView.setImageResource(R.drawable.ic_random);
         }
 
         @Override
@@ -230,7 +235,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
             ChangeStateToPlay();
         });
         loopView.setOnClickListener(v -> {
-            loopState = (loopState + 1) % numLoopState;
+            loopState = musicPlayerService.getLoopState();
+            loopState = (loopState + 1) % musicPlayerService.getNumLoopState();
             musicPlayerService.setLoopState(loopState);
             if (loopState == LOOP_ORDER) loopView.setImageResource(R.drawable.ic_ordered);
             if (loopState == LOOP_SINGLE) loopView.setImageResource(R.drawable.ic_loop);

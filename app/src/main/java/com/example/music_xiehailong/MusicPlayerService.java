@@ -37,6 +37,10 @@ public class MusicPlayerService extends Service {
         mediaPlayer.notifyItemDeleted(position);
     }
 
+    public int getNumLoopState() {
+        return 3;
+    }
+
     public class MusicBinder extends Binder {
         MusicPlayerService getService() {
             return MusicPlayerService.this;
