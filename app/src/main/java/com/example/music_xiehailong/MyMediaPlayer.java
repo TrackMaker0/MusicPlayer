@@ -154,5 +154,19 @@ public class MyMediaPlayer extends MediaPlayer {
     public int getDuration() {
         return isPrepared() ? super.getDuration() : 0;
     }
+
+    public void notifyItemDeleted(int position) {
+
+        if (position == currentSongIndex) {
+            if (currentSongIndex == 0) {
+                stopMusic();
+            } else {
+                currentSongIndex = position - 1;
+                nextMusic();
+            }
+        } else if (position < currentSongIndex) {
+            currentSongIndex --;
+        }
+    }
 }
 

@@ -12,6 +12,15 @@
         android:layout_toStartOf="@+id/remove"
         android:elevation="10dp" />
 
+    <View
+        android:id="@+id/backgroundView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_toStartOf="@+id/remove"
+        android:elevation="10dp" />
+
     <TextView
         android:id="@+id/musicName"
         android:layout_width="wrap_content"

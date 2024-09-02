@@ -39,7 +39,13 @@ public class DataManager {
     }
 
     public static void setMusicPlayerService(MusicPlayerService musicPlayerService) {
+        if (musicPlayerService == null) return;
         DataManager.musicPlayerService = musicPlayerService;
+    }
+
+    public static MusicInfo getCurrentMusic() {
+        if (musicPlayerService == null) return null;
+        return DataManager.musicPlayerService.getCurrentMusicInfo();
     }
 
     public static void addItem(MusicInfo musicInfo) {
@@ -53,7 +59,11 @@ public class DataManager {
     }
 
     public static void remove(MusicInfo musicInfo) {
+        if (!musicInfoList.contains(musicInfo)) return;
+        if (musicInfoList.size() == 1) return;
+        int position = musicInfoList.indexOf(musicInfo);
         musicInfoList.remove(musicInfo);
+        musicPlayerService.notifyItemDeleted(position);
     }
 
     public static boolean getLikeStatus(MusicInfo currentMusicInfo) {
@@ -110,5 +120,10 @@ public class DataManager {
 
     public static void addAll(List<MusicInfo> randomMusic) {
         randomMusic.forEach(DataManager::addItem);
+    }
+
+    public static void nextMusic() {
+        if (musicPlayerService == null) return;
+        musicPlayerService.nextMusic();
     }
 }

@@ -1,13 +1,18 @@
 package com.example.music_xiehailong;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.music_xiehailong.R;
 
 import java.util.List;
@@ -30,10 +35,6 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongVi
     @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onBindViewHolder(@NonNull SongViewHolder holder, int position) {
-//        if (position >= musicInfoList.size()) {
-//            holder.itemView.setVisibility(View.INVISIBLE);
-//            return;
-//        }
         MusicInfo musicInfo = musicInfoList.get(position);
         holder.musicNameView.setText(musicInfo.getMusicName());
         holder.authorView.setText(musicInfo.getAuthor());
@@ -41,9 +42,22 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongVi
             DataManager.remove(musicInfo);
             notifyDataSetChanged();
         });
+
         holder.filledView.setOnClickListener(v -> {
             DataManager.setCurrentMusic(musicInfo);
+            notifyDataSetChanged();
         });
+
+        MusicInfo currentMusicInfo = DataManager.getCurrentMusic();
+        if (currentMusicInfo != null && currentMusicInfo.equals(musicInfo)) {
+            holder.musicNameView.setTextColor(Color.argb(255, 51, 37, 205));
+            holder.authorView.setTextColor(Color.argb(255, 51, 37, 205));
+            holder.backgroundView.setBackground(new ColorDrawable(Color.argb(8,0,0,0)));
+        } else {
+            holder.musicNameView.setTextColor(Color.BLACK);
+            holder.authorView.setTextColor(Color.BLACK);
+            holder.backgroundView.setBackground(null);
+        }
     }
 
     @Override
@@ -56,6 +70,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongVi
         TextView authorView;
         ImageView removeView;
         View filledView;
+        View backgroundView;
 
         public SongViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -63,6 +78,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongVi
             authorView = itemView.findViewById(R.id.author);
             removeView = itemView.findViewById(R.id.remove);
             filledView = itemView.findViewById(R.id.fillView);
+            backgroundView = itemView.findViewById(R.id.backgroundView);
         }
     }
 }

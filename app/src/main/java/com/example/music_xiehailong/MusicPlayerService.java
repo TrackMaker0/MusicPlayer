@@ -33,6 +33,10 @@ public class MusicPlayerService extends Service {
         return mediaPlayer.getCurrentSongIndex();
     }
 
+    public void notifyItemDeleted(int position) {
+        mediaPlayer.notifyItemDeleted(position);
+    }
+
     public class MusicBinder extends Binder {
         MusicPlayerService getService() {
             return MusicPlayerService.this;
