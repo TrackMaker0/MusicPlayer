@@ -27,32 +27,15 @@
             android:hint="请输入问题关键词"
             android:paddingStart="16dp" />
 
-<!--        &lt;!&ndash;   Banner     &ndash;&gt;-->
-<!--        <androidx.fragment.app.FragmentContainerView-->
-<!--            android:id="@+id/banner_container"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="150dp" />-->
-
-<!--        <androidx.fragment.app.FragmentContainerView-->
-<!--            android:id="@+id/exclusive_container"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="150dp" />-->
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:orientation="vertical" />
 
-<!--        <androidx.fragment.app.FragmentContainerView-->
-<!--            android:id="@+id/recommend_container"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content" />-->
-<!--        -->
-<!--        <androidx.fragment.app.FragmentContainerView-->
-<!--            android:id="@+id/hotsong_container"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content" />-->
+        <include layout="@layout/layout_floating" />
+
 
     </LinearLayout>
 

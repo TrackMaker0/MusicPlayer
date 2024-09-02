@@ -7,7 +7,6 @@ import androidx.palette.graphics.Palette;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
@@ -17,15 +16,14 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.View;
-import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
-import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -35,6 +33,10 @@ import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,7 +54,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private LyricsAdapter lyricsAdapter;
     private LinearLayoutManager layoutManager;
     private ObjectAnimator rotateAnimator;
-    private MusicService musicService;
+    private MusicPlayerService musicPlayerService;
+    private Drawable pauseDrawable, playDrawable;
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable checkIfPreparedRunnable;
     private boolean isBound = false;
 
     public static final String TAG = "MyMusicPlayerActivity";
@@ -65,7 +70,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private int UserNotScrollTime = 0;// 用户停止滑动时间
     private boolean isUserSeeking = false;//是否在调整进度条
     private boolean isUserScrolling = false;//是否在滚动歌词
-    private boolean FistPrepare = true;//是否在调整进度条
 
     List<LrcParser.LrcLine> lrcLines = new ArrayList<>();
     Timer timer;
@@ -74,6 +78,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_player);
+
+        EventBus.getDefault().register(this);
+        Intent intent = new Intent(this, MusicPlayerService.class);
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
 
         // 初始化控件和默认参数
         Init();
@@ -93,23 +101,23 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
-            musicService = binder.getService();
+            MusicPlayerService.MusicBinder binder = (MusicPlayerService.MusicBinder) service;
+            musicPlayerService = binder.getService();
             isBound = true;
-            // 初始化MyMediaPlayer
-            setupMediaPlayer();
+
             // 绑定点击事件
             bindOnClickListener();
             // 开始进度条更新时间
             timer = new Timer();
             timer.schedule(new TimerTask() {  //匿名类
                 public void run() { //定时器函数体
-                    runOnUiThread(() -> updateTime());
+                    runOnUiThread(MusicPlayerActivity.this::updateTime);
                 }
             }, 0, 1000);
             // 手动刷新UI
             try {
                 updateMusicInfo();
+//                checkPlayState();
             } catch (IOException e) {
                 Log.e(TAG, "Error updating music info", e);
             }
@@ -121,6 +129,20 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
     };
 
+    private void checkPlayState() {
+        Drawable currentDrawable = playView.getDrawable();
+        if (musicPlayerService.isPlayAllowed()) { // 允许播放
+            if (currentDrawable != playDrawable) { // 但是暂停状态(播放图标)
+                ChangeStateToPlay();
+            }
+        } else {
+            if (currentDrawable != pauseDrawable) {
+                ChangeStateToPause();
+            }
+        }
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
     private void Init() {
         coverView = findViewById(R.id.cover);
         loopView = findViewById(R.id.loop);
@@ -137,6 +159,14 @@ public class MusicPlayerActivity extends AppCompatActivity {
         seekBar = findViewById(R.id.seekBar);
         backgroundView = findViewById(R.id.backgroundView);
         lyricsRecyclerView = findViewById(R.id.lyrics_recycler_view);
+        pauseDrawable = getDrawable(R.drawable.ic_pause);
+        playDrawable = getDrawable(R.drawable.ic_play);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    public void onMusicStartEvent(MusicChangeEvent event) throws IOException {
+        if (!isBound) return;
+        updateMusicInfo();
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -145,13 +175,13 @@ public class MusicPlayerActivity extends AppCompatActivity {
         GestureDetector gestureDetector = new GestureDetector(this, new SwipeGestureListener() {
             @Override
             public void onSwipeRight() {
-                musicService.nextMusic();
+                musicPlayerService.nextMusic();
                 ChangeStateToPlay();
             }
 
             @Override
             public void onSwipeLeft() {
-                musicService.prevMusic();
+                musicPlayerService.prevMusic();
                 ChangeStateToPlay();
             }
         });
@@ -165,26 +195,29 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         // 播放控制绑定
         playView.setOnClickListener(v -> {
-            if (!musicService.isPrepared()) return;
-            if (musicService.isPlaying()) {
-                musicService.pauseMusic();
+            if (musicPlayerService.isPlayAllowed()) {
+                musicPlayerService.setPlayAllowed(false);
+                musicPlayerService.pauseMusic();
                 ChangeStateToPause();
             } else {
-                musicService.playMusic();
+                musicPlayerService.setPlayAllowed(true);
+                musicPlayerService.playMusic();
                 ChangeStateToPlay();
             }
         });
         nextView.setOnClickListener(v -> {
-            musicService.nextMusic();
+            musicPlayerService.setPlayAllowed(true);
+            musicPlayerService.nextMusic();
             ChangeStateToPlay();
         });
         prevView.setOnClickListener(v -> {
-            musicService.prevMusic();
+            musicPlayerService.setPlayAllowed(true);
+            musicPlayerService.prevMusic();
             ChangeStateToPlay();
         });
         loopView.setOnClickListener(v -> {
             loopState = (loopState + 1) % numLoopState;
-            musicService.setLoopState(loopState);
+            musicPlayerService.setLoopState(loopState);
             if (loopState == LOOP_ORDER) loopView.setImageResource(R.drawable.ic_ordered);
             if (loopState == LOOP_SINGLE) loopView.setImageResource(R.drawable.ic_loop);
             if (loopState == LOOP_RANDOM) loopView.setImageResource(R.drawable.ic_random);
@@ -204,7 +237,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 int progress = seekBar.getProgress();
-                musicService.seekTo(progress);
+                musicPlayerService.seekTo(progress);
                 isUserSeeking = false;
             }
         });
@@ -220,12 +253,12 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         // Like事件绑定
         likeView.setOnClickListener(v -> {
-            boolean isLiked = DataManager.getLikeStatus(musicService.getCurrentMusicInfo());
+            boolean isLiked = DataManager.getLikeStatus(musicPlayerService.getCurrentMusicInfo());
             if (isLiked) {
-                DataManager.setLikeStatus(musicService.getCurrentMusicInfo(), false);
+                DataManager.setLikeStatus(musicPlayerService.getCurrentMusicInfo(), false);
                 animateUnlike(likeView);
             } else {
-                DataManager.setLikeStatus(musicService.getCurrentMusicInfo(), true);
+                DataManager.setLikeStatus(musicPlayerService.getCurrentMusicInfo(), true);
                 animateLike(likeView);
             }
         });
@@ -236,7 +269,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
         // 停止动画
         float currentRotation = coverView.getRotation();
         setCurrentRotationAngle(currentRotation);
-        rotateAnimator.cancel();
+        if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
     }
 
     private void ChangeStateToPlay() {
@@ -245,28 +278,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
         float currentRotation = getCurrentRotationAngle();
         startRotationAnimation(currentRotation);
-    }
-
-    private void setupMediaPlayer() {
-        // 设置OnPrepared事件
-        musicService.setOnPreparedListener(mp -> {
-            musicService.setPrepared(true);
-            if (!FistPrepare) musicService.start();
-            FistPrepare = false;
-            try {
-                updateMusicInfo();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        // 设置播放结束事件
-        musicService.setOnCompletionListener(mp -> {
-            // 音乐播放完毕后切换到下一首
-            if (!musicService.isLooping()) {
-                musicService.nextMusic();
-            }
-        });
     }
 
     private void startRotationAnimation(float startAngle) {
@@ -291,7 +302,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     private void updateMusicInfo() throws IOException {
-        MusicInfo musicInfo = musicService.getCurrentMusicInfo();
+        MusicInfo musicInfo = musicPlayerService.getCurrentMusicInfo();
+//        MusicInfo musicInfo = DataManager.getMusicInfoList().get(position);
         if (musicInfo == null) return;
         // 更新歌曲信息，背景颜色
         Glide.with(this).asBitmap().load(musicInfo.getCoverUrl()).placeholder(R.drawable.placeholder) // 设置加载中的占位图
@@ -343,23 +355,46 @@ public class MusicPlayerActivity extends AppCompatActivity {
         musicNameView.setText(musicInfo.getMusicName());
         authorView.setText(musicInfo.getAuthor());
         // 更新进度条设置
-        seekBar.setMax(musicService.getDuration());
-        totalTimeView.setText(formatTime(musicService.getDuration()));
+        updateSeekBarWhenPrepared();
 
         // 获取歌词
         getLyricFromUrl();
 
         // 更新Like状态
-        boolean isLiked = DataManager.getLikeStatus(musicService.getCurrentMusicInfo());
+        boolean isLiked = DataManager.getLikeStatus(musicPlayerService.getCurrentMusicInfo());
         if (isLiked) likeView.setImageResource(R.drawable.ic_like);
         else likeView.setImageResource(R.drawable.ic_unlike);
+
+        // 同步播放组件
+        checkPlayState();
 
         // 更新播放状态控件
         updateTime();
     }
 
+    // 歌曲的获取有网络延迟,使用线程来更新进度条
+    private void updateSeekBarWhenPrepared() {
+        // 创建一个 Runnable 来检查歌曲是否准备好
+        checkIfPreparedRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (musicPlayerService.isPrepared()) {
+                    // 歌曲已准备好，更新进度条
+                    seekBar.setMax(musicPlayerService.getDuration());
+                    totalTimeView.setText(formatTime(musicPlayerService.getDuration()));
+                } else {
+                    // 歌曲还未准备好，继续检查
+                    handler.postDelayed(this, 100); // 每100ms检查一次
+                }
+            }
+        };
+
+        // 启动检查
+        handler.post(checkIfPreparedRunnable);
+    }
+
     private void getLyricFromUrl() {
-        MusicInfo musicInfo = musicService.getCurrentMusicInfo();
+        MusicInfo musicInfo = musicPlayerService.getCurrentMusicInfo();
         if (musicInfo == null) return;
 
         String lyricUrl = musicInfo.getLyricUrl();
@@ -373,7 +408,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     for (int i = 0; i < EMPTY_LINE; i++)
                         lrcLines.add(0, new LrcParser.LrcLine(0, ""));
                     for (int i = 0; i < EMPTY_LINE; i++)
-                        lrcLines.add(new LrcParser.LrcLine(0, ""));
+                        lrcLines.add(new LrcParser.LrcLine(Integer.MAX_VALUE, ""));
 
                     // 实现 OnItemClickListener 接口
                     LyricsAdapter.OnItemClickListener onItemClickListener = new LyricsAdapter.OnItemClickListener() {
@@ -405,18 +440,18 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     private void updateCurTime() {
-        currentTimeView.setText(formatTime(musicService.getCurrentPosition()));
+        currentTimeView.setText(formatTime(musicPlayerService.getCurrentPosition()));
     }
 
     private void updatePlayTime() {
-        seekBar.setProgress(musicService.getCurrentPosition());
+        seekBar.setProgress(musicPlayerService.getCurrentPosition());
     }
 
     private void updateLyrics() {
         if (lrcLines.isEmpty()) return;
         if (lyricsAdapter == null) return;
 
-        int currentMillis = musicService.getCurrentPosition();
+        int currentMillis = musicPlayerService.getCurrentPosition();
         int currentLineIndex = findCurrentLineIndex(currentMillis);
 
         if (!isUserScrolling) {
@@ -469,15 +504,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        Intent intent = new Intent(this, MusicService.class);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
+        EventBus.getDefault().unregister(this);
         if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
         // 关闭定时器
         if (timer != null) timer.cancel();

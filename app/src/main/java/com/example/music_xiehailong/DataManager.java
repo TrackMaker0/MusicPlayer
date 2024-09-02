@@ -14,10 +14,33 @@ import java.util.Map;
 
 public class DataManager {
 
-    public static List<MusicInfo> musicInfoList = new ArrayList<>();
+    private static List<MusicInfo> musicInfoList = new ArrayList<>();
     private static HashMap<Integer, Boolean> likeStatusMap = new HashMap<>();
+    private static MusicPlayerService musicPlayerService;
     private static final String PREFS_NAME = "LikeStatusPrefs";
     private static final String LIKE_STATUS_KEY = "LikeStatus";
+
+    public static List<MusicInfo> getMusicInfoList() {
+        return musicInfoList;
+    }
+
+    public static void setMusicInfoList(List<MusicInfo> musicInfoList) {
+        DataManager.musicInfoList = musicInfoList;
+    }
+
+    public static void setCurrentMusic(MusicInfo musicInfo) {
+        if (musicPlayerService == null) return;
+        if (!musicInfoList.contains(musicInfo)) return;
+        musicPlayerService.setCurrentSongIndex(musicInfoList.indexOf(musicInfo));
+    }
+
+    public static MusicPlayerService getMusicPlayerService() {
+        return musicPlayerService;
+    }
+
+    public static void setMusicPlayerService(MusicPlayerService musicPlayerService) {
+        DataManager.musicPlayerService = musicPlayerService;
+    }
 
     public static void addItem(MusicInfo musicInfo) {
         if (musicInfoList.contains(musicInfo)) return;
@@ -83,5 +106,9 @@ public class DataManager {
             e.printStackTrace();
         }
         DataManager.likeStatusMap = likeStatusMap;
+    }
+
+    public static void addAll(List<MusicInfo> randomMusic) {
+        randomMusic.forEach(DataManager::addItem);
     }
 }

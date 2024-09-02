@@ -1,34 +1,52 @@
 package com.example.music_xiehailong;
 
-import android.app.Notification;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 
-public class MusicService extends Service {
+public class MusicPlayerService extends Service {
 
     private MyMediaPlayer mediaPlayer;
 
-    public MusicService() {
+    public MusicPlayerService() {
     }
 
     public boolean isPrepared() {
         return mediaPlayer.isPrepared();
     }
 
+    public void setPlayAllowed(boolean playAllowed) {
+        mediaPlayer.setPlayAllowed(playAllowed);
+    }
+
+    public boolean isPlayAllowed() {
+        return mediaPlayer.isPlayAllowed();
+    }
+
+    public void setCurrentSongIndex(int index) {
+        mediaPlayer.setCurrentSongIndex(index);
+    }
+
+    public int getCurrentSongIndex() {
+        return mediaPlayer.getCurrentSongIndex();
+    }
+
     public class MusicBinder extends Binder {
-        MusicService getService() {
-            return MusicService.this;
+        MusicPlayerService getService() {
+            return MusicPlayerService.this;
         }
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mediaPlayer = new MyMediaPlayer(MusicService.this);
+        mediaPlayer = new MyMediaPlayer(MusicPlayerService.this);
+    }
+
+    public MyMediaPlayer getMediaPlayer() {
+        return mediaPlayer;
     }
 
     public void playMusic() {
@@ -68,8 +86,8 @@ public class MusicService extends Service {
         mediaPlayer.setOnPreparedListener(listener);
     }
 
-    public void setPrepared(boolean b) {
-        mediaPlayer.setPrepared(b);
+    public void setPrepared(boolean prepared) {
+        mediaPlayer.setPrepared(prepared);
     }
 
     public void start() {

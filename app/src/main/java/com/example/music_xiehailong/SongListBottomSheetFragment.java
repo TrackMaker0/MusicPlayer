@@ -23,7 +23,7 @@ public class SongListBottomSheetFragment extends BottomSheetDialogFragment {
 
         // Initialize RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new SongListAdapter(DataManager.musicInfoList);
+        adapter = new SongListAdapter(DataManager.getMusicInfoList());
         recyclerView.setAdapter(adapter);
 
         return view;

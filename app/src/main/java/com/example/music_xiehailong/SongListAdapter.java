@@ -41,11 +41,13 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongVi
             DataManager.remove(musicInfo);
             notifyDataSetChanged();
         });
+        holder.filledView.setOnClickListener(v -> {
+            DataManager.setCurrentMusic(musicInfo);
+        });
     }
 
     @Override
     public int getItemCount() {
-//        return Math.max(musicInfoList.size(), 10);
         return musicInfoList.size();
     }
 
@@ -53,12 +55,14 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongVi
         TextView musicNameView;
         TextView authorView;
         ImageView removeView;
+        View filledView;
 
         public SongViewHolder(@NonNull View itemView) {
             super(itemView);
             musicNameView = itemView.findViewById(R.id.musicName);
             authorView = itemView.findViewById(R.id.author);
             removeView = itemView.findViewById(R.id.remove);
+            filledView = itemView.findViewById(R.id.fillView);
         }
     }
 }

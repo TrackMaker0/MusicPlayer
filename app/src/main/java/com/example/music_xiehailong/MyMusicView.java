@@ -59,8 +59,8 @@ public class MyMusicView extends androidx.constraintlayout.widget.ConstraintLayo
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(context, MusicPlayerActivity.class);
-//                    intent.putExtra("musicInfo", (Parcelable) musicInfo);
-                    DataManager.addItem(0, musicInfo);
+                    DataManager.addItem(musicInfo);
+                    DataManager.setCurrentMusic(musicInfo);
                     context.startActivity(intent);
                 }
             });

@@ -4,22 +4,32 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import com.chad.library.adapter.base.listener.OnLoadMoreListener;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
@@ -31,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -46,8 +57,17 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     public static final String TAG = "MyMainActivity";
     private SwipeRefreshLayout swipeRefreshView;
     private List<HomeItem> homeItems;
-    private List<MusicInfo> musicInfoList;
     private HomeBaseQuickAdapter adapter;
+    private MusicPlayerService musicPlayerService;
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable checkIfPreparedRunnable;
+    private ObjectAnimator rotateAnimator;
+    private Drawable pauseDrawable, playDrawable;
+    private Intent serviceIntent;
+    private ImageView floatingCover, floatingPlay, floatingList;
+    private TextView floatingMusicName, floatingAuthor;
+    private View floatingFill;
+    private boolean isBound = false;
     private boolean isLoading = false;
     private int current = 1;
     private int size = 4;
@@ -57,19 +77,55 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        InitData();
+
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         DataManager.loadLikeStatus(this);
 
+        serviceIntent = new Intent(this, MusicPlayerService.class);
+        startService(serviceIntent);
+
         homeItems = new ArrayList<>();
         makeOkHttpRequest();
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private void InitData() {
+        floatingCover = findViewById(R.id.floatingCover);
+        floatingMusicName = findViewById(R.id.floatingMusicName);
+        floatingAuthor = findViewById(R.id.floatingAuthor);
+        floatingPlay = findViewById(R.id.floatingPlay);
+        floatingList = findViewById(R.id.floatingList);
+        floatingFill = findViewById(R.id.floatingFill);
+        pauseDrawable = getDrawable(R.drawable.ic_pause_black);
+        playDrawable = getDrawable(R.drawable.ic_play_black);
+    }
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicPlayerService.MusicBinder binder = (MusicPlayerService.MusicBinder) service;
+            musicPlayerService = binder.getService();
+            isBound = true;
+            DataManager.setMusicPlayerService(musicPlayerService);
+            BindListenerAndAdapter();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
+
+    private void BindListenerAndAdapter() {
+
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         adapter = new HomeBaseQuickAdapter(this, homeItems);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
         swipeRefreshView = findViewById(R.id.swipe_refresh_layout);
-
         swipeRefreshView.setOnRefreshListener(() -> {
             if (isLoading || adapter.getLoadMoreModule().isLoading()) return;
             isLoading = true;
@@ -82,6 +138,135 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
             isLoading = true;
             makeOkHttpRequest();
         });
+
+        floatingFill.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+            startActivity(intent);
+        });
+
+        floatingPlay.setOnClickListener(v -> {
+            if (musicPlayerService.isPlayAllowed()) {
+                musicPlayerService.setPlayAllowed(false);
+                musicPlayerService.pauseMusic();
+                ChangeStateToPause();
+            } else {
+                musicPlayerService.setPlayAllowed(true);
+                musicPlayerService.playMusic();
+                ChangeStateToPlay();
+            }
+        });
+
+        floatingList.setOnClickListener(v -> {
+            SongListBottomSheetFragment bottomSheet = new SongListBottomSheetFragment();
+            bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
+        });
+
+        startRandomModuleWhenPrePared();
+    }
+
+    private void startRotationAnimation(float startAngle) {
+        rotateAnimator = ObjectAnimator.ofFloat(floatingCover, "rotation", startAngle, startAngle + 360f);
+        rotateAnimator.setDuration(10000); // Duration of one full rotation
+        rotateAnimator.setInterpolator(new LinearInterpolator());
+        rotateAnimator.setRepeatCount(ObjectAnimator.INFINITE);
+        rotateAnimator.start();
+    }
+
+    private float getCurrentRotationAngle() {
+        Object tag = floatingPlay.getTag();
+        if (tag instanceof Float) {
+            return (Float) tag;
+        } else {
+            return 0f;
+        }
+    }
+
+    private void setCurrentRotationAngle(float angle) {
+        floatingPlay.setTag(angle); // Save the current angle
+    }
+
+    private void ChangeStateToPause() {
+        floatingPlay.setImageResource(R.drawable.ic_play_black);  // 切换为播放图标
+        // 停止动画
+        float currentRotation = floatingPlay.getRotation();
+        setCurrentRotationAngle(currentRotation);
+        if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
+    }
+
+    private void ChangeStateToPlay() {
+        floatingPlay.setImageResource(R.drawable.ic_pause_black);  // 切换为暂停图标
+        // 开始动画
+        if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
+        float currentRotation = getCurrentRotationAngle();
+        startRotationAnimation(currentRotation);
+    }
+
+    private void updateFloatingView() {
+        MusicInfo currentMusicInfo = musicPlayerService.getCurrentMusicInfo();
+        if (currentMusicInfo != null) {
+            Glide.with(this)
+                    .load(currentMusicInfo.getCoverUrl())
+                    .placeholder(R.drawable.placeholder) // 设置加载中的占位图
+                    .error(R.drawable.error) // 设置加载失败的占位图
+                    .apply(RequestOptions.bitmapTransform(new CircleCrop()))
+                    .into(floatingCover);
+            floatingMusicName.setText(currentMusicInfo.getMusicName());
+            floatingAuthor.setText(currentMusicInfo.getAuthor());
+
+            // 同步播放组件
+            checkPlayState();
+        }
+    }
+
+    private void checkPlayState() {
+        Drawable currentDrawable = floatingPlay.getDrawable();
+        if (musicPlayerService.isPlayAllowed()) { // 允许播放
+            if (currentDrawable != playDrawable) { // 但是暂停状态(播放图标)
+                ChangeStateToPlay();
+            }
+        } else {
+            if (currentDrawable != pauseDrawable) {
+                ChangeStateToPause();
+            }
+        }
+    }
+
+    // 程序首次运行判断
+    private boolean isFirstLaunch() {
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        boolean isFirstLaunch = prefs.getBoolean("isFirstLaunch", true);
+        if (isFirstLaunch) {
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean("isFirstLaunch", false);
+            editor.apply();
+        }
+        return isFirstLaunch;
+    }
+
+    private void startRandomModuleWhenPrePared() {
+        Log.d(TAG, "startRandomModuleWhenPrePared: ");
+        
+        // 创建一个 Runnable 来检查歌曲是否准备好
+        checkIfPreparedRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!homeItems.isEmpty()) {
+                    // 准备好了,随机选择模块
+                    HomeItem randomItem = homeItems.get(new Random().nextInt(homeItems.size()));
+                    if (randomItem.getContentItems() != null && !randomItem.getContentItems().isEmpty()) {
+                        List<MusicInfo> randomMusic = randomItem.getContentItems();
+                        DataManager.addAll(randomMusic);
+                    }
+                    musicPlayerService.setCurrentSongIndex(0);
+                } else {
+                    // 还未准备好，继续检查
+                    handler.postDelayed(this, 100); // 每100ms检查一次
+                }
+            }
+        };
+
+        // 启动检查
+        handler.post(checkIfPreparedRunnable);
     }
 
     public void makeOkHttpRequest() {
@@ -199,10 +384,35 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         return chain.proceed(requestBuilder.build());
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    public void onMusicStartEvent(MusicChangeEvent event) throws IOException {
+        updateFloatingView();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, MusicPlayerService.class);
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        EventBus.getDefault().register(this);
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
         DataManager.saveLikeStatus(this);
+        EventBus.getDefault().unregister(this);
+        if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (isBound) {
+            unbindService(serviceConnection);
+            isBound = false;
+        }
+        stopService(serviceIntent);
     }
 
     @Override

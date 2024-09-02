@@ -15,8 +15,9 @@ public class MyMediaPlayer extends MediaPlayer {
     private final Context context;
     private boolean isPrepared = false;
     private int currentSongIndex = 0;
+    private boolean playAllowed = false;
 
-    private List<MusicInfo> playlist;
+    private List<MusicInfo> playlist = new ArrayList<>();
 
     private int loopState = 0;//循环状态  0-顺序播放 1-单曲循环 2-随机播放
     private final int LOOP_ORDER = 0;
@@ -25,8 +26,21 @@ public class MyMediaPlayer extends MediaPlayer {
 
     public MyMediaPlayer(Context context) {
         this.context = context;
-        this.playlist = DataManager.musicInfoList;
-        setCurrentSongIndex(0);
+        this.playlist = DataManager.getMusicInfoList();
+
+        setOnPreparedListener(mp -> {
+            EventBus.getDefault().postSticky(new MusicChangeEvent(currentSongIndex));
+            isPrepared = true;
+            if (playAllowed) start();
+        });
+
+        setOnCompletionListener(mp -> {
+            // 音乐播放完毕后切换到下一首
+            if (!isLooping()) {
+                nextMusic();
+            }
+        });
+
     }
 
     public void setPlaylist(List<MusicInfo> playlist) {
@@ -41,6 +55,14 @@ public class MyMediaPlayer extends MediaPlayer {
         DataManager.addItem(index, musicInfo);
     }
 
+    public boolean isPlayAllowed() {
+        return playAllowed;
+    }
+
+    public void setPlayAllowed(boolean playAllowed) {
+        this.playAllowed = playAllowed;
+    }
+
     public void playMusic() {
         if (isPrepared) {
             start();
@@ -50,6 +72,7 @@ public class MyMediaPlayer extends MediaPlayer {
     }
 
     private void prepareAndPlay() {
+        if (playlist.isEmpty()) return;
         try {
             reset();
             setDataSource(context, Uri.parse(playlist.get(currentSongIndex).getMusicUrl()));
@@ -78,7 +101,7 @@ public class MyMediaPlayer extends MediaPlayer {
     }
 
     public MusicInfo getCurrentMusicInfo() {
-        if (playlist == null) return null;
+        if (playlist.isEmpty()) return null;
         return playlist.get(getCurrentSongIndex());
     }
 
@@ -90,7 +113,6 @@ public class MyMediaPlayer extends MediaPlayer {
 
     public void stopMusic() {
         stop();
-        isPrepared = false;
     }
 
     public int getTotalSeconds() {
@@ -126,12 +148,11 @@ public class MyMediaPlayer extends MediaPlayer {
     }
 
     public int getCurrentPosition() {
-        return isPrepared ? super.getCurrentPosition() : 0;
+        return isPrepared() ? super.getCurrentPosition() : 0;
     }
 
     public int getDuration() {
-        return isPrepared ? super.getDuration() : 0;
+        return isPrepared() ? super.getDuration() : 0;
     }
-
 }
 
