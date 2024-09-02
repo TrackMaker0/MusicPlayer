@@ -74,6 +74,22 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     private int current = 1;
     private int size = 4;
 
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicPlayerService.MusicBinder binder = (MusicPlayerService.MusicBinder) service;
+            musicPlayerService = binder.getService();
+            isBound = true;
+            DataManager.setMusicPlayerService(musicPlayerService);
+            BindListenerAndAdapter();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,22 +129,6 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         pauseDrawable = getDrawable(R.drawable.ic_pause_black);
         playDrawable = getDrawable(R.drawable.ic_play_black);
     }
-
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            MusicPlayerService.MusicBinder binder = (MusicPlayerService.MusicBinder) service;
-            musicPlayerService = binder.getService();
-            isBound = true;
-            DataManager.setMusicPlayerService(musicPlayerService);
-            BindListenerAndAdapter();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            isBound = false;
-        }
-    };
 
     private void BindListenerAndAdapter() {
 
@@ -176,6 +176,46 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
         startRandomModuleWhenPrePared();
     }
 
+    private void startRandomModuleWhenPrePared() {
+        // 创建一个 Runnable 来检查歌曲是否准备好
+        checkIfPreparedRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!homeItems.isEmpty()) {
+                    // 准备好了,随机选择模块
+                    HomeItem randomItem = homeItems.get(new Random().nextInt(homeItems.size()));
+                    if (randomItem.getContentItems() != null && !randomItem.getContentItems().isEmpty()) {
+                        List<MusicInfo> randomMusic = randomItem.getContentItems();
+                        DataManager.addAll(randomMusic);
+                    }
+                    musicPlayerService.setCurrentSongIndex(0);
+                } else {
+                    // 还未准备好，继续检查
+                    handler.postDelayed(this, 100); // 每100ms检查一次
+                }
+            }
+        };
+
+        // 启动检查
+        handler.post(checkIfPreparedRunnable);
+    }
+
+    private void ChangeStateToPause() {
+        floatingPlay.setImageResource(R.drawable.ic_play_black);  // 切换为播放图标
+        // 停止动画
+        float currentRotation = floatingPlay.getRotation();
+        setCurrentRotationAngle(currentRotation);
+        if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
+    }
+
+    private void ChangeStateToPlay() {
+        floatingPlay.setImageResource(R.drawable.ic_pause_black);  // 切换为暂停图标
+        // 开始动画
+        if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
+        float currentRotation = getCurrentRotationAngle();
+        startRotationAnimation(currentRotation);
+    }
+
     private void startRotationAnimation(float startAngle) {
         rotateAnimator = ObjectAnimator.ofFloat(floatingCover, "rotation", startAngle, startAngle + 360f);
         rotateAnimator.setDuration(10000); // Duration of one full rotation
@@ -195,22 +235,6 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
 
     private void setCurrentRotationAngle(float angle) {
         floatingPlay.setTag(angle); // Save the current angle
-    }
-
-    private void ChangeStateToPause() {
-        floatingPlay.setImageResource(R.drawable.ic_play_black);  // 切换为播放图标
-        // 停止动画
-        float currentRotation = floatingPlay.getRotation();
-        setCurrentRotationAngle(currentRotation);
-        if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
-    }
-
-    private void ChangeStateToPlay() {
-        floatingPlay.setImageResource(R.drawable.ic_pause_black);  // 切换为暂停图标
-        // 开始动画
-        if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
-        float currentRotation = getCurrentRotationAngle();
-        startRotationAnimation(currentRotation);
     }
 
     private void updateFloatingView() {
@@ -241,44 +265,6 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
                 ChangeStateToPause();
             }
         }
-    }
-
-    // 程序首次运行判断
-    private boolean isFirstLaunch() {
-        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-        boolean isFirstLaunch = prefs.getBoolean("isFirstLaunch", true);
-        if (isFirstLaunch) {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean("isFirstLaunch", false);
-            editor.apply();
-        }
-        return isFirstLaunch;
-    }
-
-    private void startRandomModuleWhenPrePared() {
-        Log.d(TAG, "startRandomModuleWhenPrePared: ");
-        
-        // 创建一个 Runnable 来检查歌曲是否准备好
-        checkIfPreparedRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!homeItems.isEmpty()) {
-                    // 准备好了,随机选择模块
-                    HomeItem randomItem = homeItems.get(new Random().nextInt(homeItems.size()));
-                    if (randomItem.getContentItems() != null && !randomItem.getContentItems().isEmpty()) {
-                        List<MusicInfo> randomMusic = randomItem.getContentItems();
-                        DataManager.addAll(randomMusic);
-                    }
-                    musicPlayerService.setCurrentSongIndex(0);
-                } else {
-                    // 还未准备好，继续检查
-                    handler.postDelayed(this, 100); // 每100ms检查一次
-                }
-            }
-        };
-
-        // 启动检查
-        handler.post(checkIfPreparedRunnable);
     }
 
     public void makeOkHttpRequest() {
@@ -378,8 +364,6 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
             size = 1;
         }
 
-        Log.d(TAG, "intercept: " + current + "and" + size);
-
         Request request = chain.request();
         Request.Builder requestBuilder = request.newBuilder();
         // 添加请求头信息
@@ -402,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements Interceptor {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
-    public void onMusicListEmptyEvent(MusicListEmptyEvent event){
+    public void onMusicListEmptyEvent(MusicListEmptyEvent event) {
         if (event.isEmpty) {
             floatingView.setVisibility(View.GONE);
             if (bottomSheet != null) bottomSheet.dismiss();

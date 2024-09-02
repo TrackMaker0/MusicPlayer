@@ -11,6 +11,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.chad.library.adapter.base.BaseMultiItemQuickAdapter;
 import com.chad.library.adapter.base.module.LoadMoreModule;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
+
 import java.util.List;
 
 public class HomeBaseQuickAdapter extends BaseMultiItemQuickAdapter<HomeItem, BaseViewHolder>

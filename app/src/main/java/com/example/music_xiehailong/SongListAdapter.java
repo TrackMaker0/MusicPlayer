@@ -61,7 +61,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.SongVi
         if (currentMusicInfo != null && currentMusicInfo.equals(musicInfo)) {
             holder.musicNameView.setTextColor(Color.argb(255, 51, 37, 205));
             holder.authorView.setTextColor(Color.argb(255, 51, 37, 205));
-            holder.backgroundView.setBackground(new ColorDrawable(Color.argb(8,0,0,0)));
+            holder.backgroundView.setBackground(new ColorDrawable(Color.argb(8, 0, 0, 0)));
         } else {
             holder.musicNameView.setTextColor(Color.BLACK);
             holder.authorView.setTextColor(Color.BLACK);

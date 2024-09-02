@@ -39,7 +39,7 @@ public class MyMusicView extends androidx.constraintlayout.widget.ConstraintLayo
     }
 
     public static void bind(MyMusicView myMusicView, MusicInfo musicInfo, Context context, View view) {
-        if (musicInfo != null){
+        if (musicInfo != null) {
             Glide.with(view)
                     .load(musicInfo.getCoverUrl())
                     .placeholder(R.drawable.placeholder) // 设置加载中的占位图

@@ -59,7 +59,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable checkIfPreparedRunnable;
     private SongListBottomSheetFragment bottomSheet;
-    private boolean isBound = false;
+    private List<LrcParser.LrcLine> lrcLines = new ArrayList<>();
+    private Timer timer;
+
 
     public static final String TAG = "MyMusicPlayerActivity";
     private int loopState = 0;//循环状态  0-顺序播放 1-单曲循环 2-随机播放
@@ -71,40 +73,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private int UserNotScrollTime = 0;// 用户停止滑动时间
     private boolean isUserSeeking = false;//是否在调整进度条
     private boolean isUserScrolling = false;//是否在滚动歌词
-
-    List<LrcParser.LrcLine> lrcLines = new ArrayList<>();
-    Timer timer;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_music_player);
-
-        EventBus.getDefault().register(this);
-        Intent intent = new Intent(this, MusicPlayerService.class);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-        DataManager.setOnListEmptyListener(new DataManager.OnListEmptyListener() {
-            @Override
-            public void OnListEmpty() {
-                if (bottomSheet != null) bottomSheet.dismiss();
-                finish();
-            }
-        });
-
-        // 初始化控件和默认参数
-        Init();
-
-        layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        lyricsRecyclerView.setLayoutManager(layoutManager);
-        lyricsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                isUserScrolling = newState != RecyclerView.SCROLL_STATE_IDLE;
-                if (isUserScrolling) UserNotScrollTime = 0;
-            }
-        });
-    }
+    private boolean isBound = false;
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -142,17 +111,35 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
     };
 
-    private void checkPlayState() {
-        Drawable currentDrawable = playView.getDrawable();
-        if (musicPlayerService.isPlayAllowed()) { // 允许播放
-            if (currentDrawable != playDrawable) { // 但是暂停状态(播放图标)
-                ChangeStateToPlay();
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_music_player);
+
+        EventBus.getDefault().register(this);
+        Intent intent = new Intent(this, MusicPlayerService.class);
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        DataManager.setOnListEmptyListener(new DataManager.OnListEmptyListener() {
+            @Override
+            public void OnListEmpty() {
+                if (bottomSheet != null) bottomSheet.dismiss();
+                finish();
             }
-        } else {
-            if (currentDrawable != pauseDrawable) {
-                ChangeStateToPause();
+        });
+
+        // 初始化控件和默认参数
+        Init();
+
+        layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        lyricsRecyclerView.setLayoutManager(layoutManager);
+        lyricsRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                isUserScrolling = newState != RecyclerView.SCROLL_STATE_IDLE;
+                if (isUserScrolling) UserNotScrollTime = 0;
             }
-        }
+        });
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -176,17 +163,24 @@ public class MusicPlayerActivity extends AppCompatActivity {
         playDrawable = getDrawable(R.drawable.ic_play);
     }
 
+    private void checkPlayState() {
+        Drawable currentDrawable = playView.getDrawable();
+        if (musicPlayerService.isPlayAllowed()) { // 允许播放
+            if (currentDrawable != playDrawable) { // 但是暂停状态(播放图标)
+                ChangeStateToPlay();
+            }
+        } else {
+            if (currentDrawable != pauseDrawable) {
+                ChangeStateToPause();
+            }
+        }
+    }
+
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onMusicStartEvent(MusicChangeEvent event) throws IOException {
         if (!isBound) return;
         updateMusicInfo();
     }
-
-//    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
-//    public void onMusicListEmptyEvent(MusicListEmptyEvent event){
-//        if (bottomSheet != null) bottomSheet.dismiss();
-//        finish();
-//    }
 
     @SuppressLint("ClickableViewAccessibility")
     public void bindOnClickListener() {
@@ -323,7 +317,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
     private void updateMusicInfo() throws IOException {
         MusicInfo musicInfo = musicPlayerService.getCurrentMusicInfo();
-//        MusicInfo musicInfo = DataManager.getMusicInfoList().get(position);
         if (musicInfo == null) return;
         // 更新歌曲信息，背景颜色
         Glide.with(this).asBitmap().load(musicInfo.getCoverUrl()).placeholder(R.drawable.placeholder) // 设置加载中的占位图
@@ -527,6 +520,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        bottomSheet = null;
         EventBus.getDefault().unregister(this);
         if (rotateAnimator != null && rotateAnimator.isRunning()) rotateAnimator.cancel();
         // 关闭定时器

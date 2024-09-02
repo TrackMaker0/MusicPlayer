@@ -166,7 +166,7 @@ public class MyMediaPlayer extends MediaPlayer {
                 nextMusic();
             }
         } else if (position < currentSongIndex) {
-            currentSongIndex --;
+            currentSongIndex--;
         }
     }
 }

@@ -3,6 +3,7 @@ package com.example.music_xiehailong;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,14 +14,17 @@ public class LrcParser {
 
     public interface LrcCallback {
         void onSuccess(List<LrcLine> lrcLines);
+
         void onError(IOException e);
     }
 
     public static class LrcDownloader {
         private final String LRC_URL;
+
         public LrcDownloader(String lrc_url) {
             this.LRC_URL = lrc_url;
         }
+
         public String downloadLrc() throws IOException {
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder()

@@ -19,15 +19,35 @@ public class Module {
     @SerializedName("musicInfoList")
     private List<MusicInfo> musicInfoList;
 
-    public int getModuleConfigId() { return moduleConfigId; }
-    public void setModuleConfigId(int moduleConfigId) { this.moduleConfigId = moduleConfigId; }
+    public int getModuleConfigId() {
+        return moduleConfigId;
+    }
 
-    public String getModuleName() { return moduleName; }
-    public void setModuleName(String moduleName) { this.moduleName = moduleName; }
+    public void setModuleConfigId(int moduleConfigId) {
+        this.moduleConfigId = moduleConfigId;
+    }
 
-    public int getStyle() { return style; }
-    public void setStyle(int style) { this.style = style; }
+    public String getModuleName() {
+        return moduleName;
+    }
 
-    public List<MusicInfo> getMusicInfoList() { return musicInfoList; }
-    public void setMusicInfoList(List<MusicInfo> musicInfoList) { this.musicInfoList = musicInfoList; }
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
+    }
+
+    public int getStyle() {
+        return style;
+    }
+
+    public void setStyle(int style) {
+        this.style = style;
+    }
+
+    public List<MusicInfo> getMusicInfoList() {
+        return musicInfoList;
+    }
+
+    public void setMusicInfoList(List<MusicInfo> musicInfoList) {
+        this.musicInfoList = musicInfoList;
+    }
 }
